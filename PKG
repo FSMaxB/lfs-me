@@ -1,8 +1,12 @@
 #!/bin/bash
 
-build_dir=${HOME}/pkg/build
-fakeroot_dir=${HOME}/pkg/fakeroot
+temp_dir=$(mktemp -d)
+build_dir=${temp_dir}/build
+fakeroot_dir=${temp_dir}/fakeroot
 dir=$PWD
+
+#create directories
+mkdir -pv ${build_dir} ${fakeroot_dir}
 
 #Setze spezielle Umgebungsvariablen, falls nicht vorhanden
 if [[ ! -z ${LFS+x} ]]; then
@@ -26,7 +30,7 @@ pkg_package() {
 
     #Paket erzeugen
     cd $dir
-    cp ./PKGBUILD ${fakeroot_dir}/
+    cp ${temp_dir}/PKGBUILD ${fakeroot_dir}/
     fakeroot tar -cJf ${pkgname}-${pkgver}.pkg -C ${fakeroot_dir} .
 
     #Verzeichnisse saeubern
@@ -36,9 +40,11 @@ pkg_package() {
 case $1 in
     "build")
         if [[ ! -z ${2+x} ]]; then
-            cp $2 ./PKGBUILD
+            cp $2 ${temp_dir}/PKGBUILD
+	else
+	    cp ./PKGBUILD ${temp_dir}/
         fi
-        source ./PKGBUILD
+        source ${temp_dir}/PKGBUILD
 	echo Vorbereiten
         pkg_prepare
 	echo Kompilieren
@@ -52,16 +58,17 @@ case $1 in
         ;;
     "install")
         tar -xJf $2 -C / --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
-        tar -xJf $2 ./PKGBUILD
+        tar -xJf $2 -C ${temp_dir} ./PKGBUILD
+        cd ${temp_dir}
         source ./PKGBUILD
 	echo Postinstall
         pkg_postinstall
-        rm ./PKGBUILD
         ;;
     "remove")
-        tar -xJf $2 ./FILES ./DIRS ./LINKS ./PKGBUILD
-        rm $( cat FILES )
-	rm $( cat LINKS )
+        tar -xJf $2 -C ${temp_dir} ./FILES ./DIRS ./LINKS ./PKGBUILD
+	cd ${temp_dir}
+        rm -f $( cat FILES )
+	rm -f $( cat LINKS )
         rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
         source ./PKGBUILD
 	echo Postremove-Skript
@@ -70,13 +77,12 @@ case $1 in
         ;;
     "check")
 	echo Checksummen Pruefen
-        tar -xJf $2 ./md5sums
+        tar -xJf $2 -C ${temp_dir} ./md5sums
+	cd ${temp_dir}
 	grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
-	rm md5sums
 	mv md5sums.grep md5sums
         cd /
-        md5sum -c ${dir}/md5sums
-        rm ${dir}/md5sums
+        md5sum -c ${temp_dir}/md5sums
         ;;
     *)
         echo Einfacher Paketmanager
@@ -88,4 +94,7 @@ case $1 in
         echo -e \\t$0 check paket.pkg
         ;;
 esac
+
+#cleanup
+rm -rf ${temp_dir}
 
