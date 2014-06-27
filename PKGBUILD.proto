@@ -1,0 +1,32 @@
+#!/bin/bash
+pkgname=packagename
+pkgver=1.1.1
+
+pkg_prepare() {
+    #Extract
+    tar -xf ${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
+
+    cd ${build_dir}/${pkgname}-${pkgver}
+
+    ./configure
+}
+
+pkg_build() {
+    make
+}
+
+pkg_check() {
+    make check 2>&1 | tee ${dir}/${pkgname}-check-log
+}
+
+pkg_install() {
+    make DESTDIR="${fakeroot_dir}" install
+}
+
+pkg_postinstall() {
+    return
+}
+
+pkg_remove() {
+    return
+}

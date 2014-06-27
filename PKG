@@ -1,0 +1,91 @@
+#!/bin/bash
+
+build_dir=${HOME}/pkg/build
+fakeroot_dir=${HOME}/pkg/fakeroot
+dir=$PWD
+
+#Setze spezielle Umgebungsvariablen, falls nicht vorhanden
+if [[ ! -z ${LFS+x} ]]; then
+    LFS=/mnt/lfs
+fi
+if [[ ! -z ${LFS_TGT+x} ]]; then
+    LFS_TGT=$(uname -m)-lfs-linux-gnu
+fi
+
+pkg_package() {
+    #Metadateien erzeugen
+    cd ${fakeroot_dir}
+    find . -type l > ${fakeroot_dir}/LINKS
+    find . -type f > ${fakeroot_dir}/FILES
+    find . -type d > ${fakeroot_dir}/DIRS
+    find . -type f -exec md5sum {} \; | grep -ve "\\./md5sums$" > ${fakeroot_dir}/md5sums
+    #"." vom Anfang der Dateipfade entfernen
+    sed -i -e "s/^\\.//" ${fakeroot_dir}/FILES
+    sed -i -e "s/^\\.//" ${fakeroot_dir}/DIRS
+    sed -i -e "s/^\\.//" ${fakeroot_dir}/LINKS
+
+    #Paket erzeugen
+    cd $dir
+    cp ./PKGBUILD ${fakeroot_dir}/
+    fakeroot tar -cJf ${pkgname}-${pkgver}.pkg -C ${fakeroot_dir} .
+
+    #Verzeichnisse saeubern
+    rm -rf ${build_dir}/* ${fakeroot_dir}/*
+}
+
+case $1 in
+    "build")
+        if [[ ! -z ${2+x} ]]; then
+            cp $2 ./PKGBUILD
+        fi
+        source ./PKGBUILD
+	echo Vorbereiten
+        pkg_prepare
+	echo Kompilieren
+        pkg_build
+	echo Ueberpruefen
+        pkg_check
+	echo Installieren
+        pkg_install
+	echo Packen
+        pkg_package
+        ;;
+    "install")
+        tar -xJf $2 -C / --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+        tar -xJf $2 ./PKGBUILD
+        source ./PKGBUILD
+	echo Postinstall
+        pkg_postinstall
+        rm ./PKGBUILD
+        ;;
+    "remove")
+        tar -xJf $2 ./FILES ./DIRS ./LINKS ./PKGBUILD
+        rm $( cat FILES )
+	rm $( cat LINKS )
+        rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
+        source ./PKGBUILD
+	echo Postremove-Skript
+        pkg_remove
+        rm ./FILES ./LINKS ./DIRS ./PKGBUILD
+        ;;
+    "check")
+	echo Checksummen Pruefen
+        tar -xJf $2 ./md5sums
+	grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
+	rm md5sums
+	mv md5sums.grep md5sums
+        cd /
+        md5sum -c ${dir}/md5sums
+        rm ${dir}/md5sums
+        ;;
+    *)
+        echo Einfacher Paketmanager
+        echo Benutzung:
+        echo -e \\t$0 build
+        echo -e \\t$0 build PKGBUILD-datei
+        echo -e \\t$0 install paket.pkg
+        echo -e \\t$0 remove paket.pkg
+        echo -e \\t$0 check paket.pkg
+        ;;
+esac
+
