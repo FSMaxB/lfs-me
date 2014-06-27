@@ -31,7 +31,7 @@ pkg_package() {
     #Paket erzeugen
     cd $dir
     cp ${temp_dir}/PKGBUILD ${fakeroot_dir}/
-    fakeroot tar -cJf ${pkgname}-${pkgver}.pkg -C ${fakeroot_dir} .
+    fakeroot tar -cJf ${pkgname}-${pkgver}-${pkgver_postfix}.pkg -C ${fakeroot_dir} .
 
     #Verzeichnisse saeubern
     rm -rf ${build_dir}/* ${fakeroot_dir}/*

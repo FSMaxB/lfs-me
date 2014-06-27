@@ -1,6 +1,7 @@
 #!/bin/bash
 pkgname=packagename
 pkgver=1.1.1
+pkgver_postfix="premium-edition"
 
 pkg_prepare() {
     #Extract
