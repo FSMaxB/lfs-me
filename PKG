@@ -8,7 +8,7 @@ dir=$PWD
 #create directories
 mkdir -pv ${build_dir} ${fakeroot_dir}
 
-#Setze spezielle Umgebungsvariablen, falls nicht vorhanden
+#set some needed environment variables, if not already
 if [[ ! -z ${LFS+x} ]]; then
     LFS=/mnt/lfs
 fi
@@ -17,23 +17,23 @@ if [[ ! -z ${LFS_TGT+x} ]]; then
 fi
 
 pkg_package() {
-    #Metadateien erzeugen
+    #create metadata
     cd ${fakeroot_dir}
     find . -type l > ${fakeroot_dir}/LINKS
     find . -type f > ${fakeroot_dir}/FILES
     find . -type d > ${fakeroot_dir}/DIRS
     find . -type f -exec md5sum {} \; | grep -ve "\\./md5sums$" > ${fakeroot_dir}/md5sums
-    #"." vom Anfang der Dateipfade entfernen
+    #remove "." from the beginning of pathnames
     sed -i -e "s/^\\.//" ${fakeroot_dir}/FILES
     sed -i -e "s/^\\.//" ${fakeroot_dir}/DIRS
     sed -i -e "s/^\\.//" ${fakeroot_dir}/LINKS
 
-    #Paket erzeugen
+    #create package
     cd $dir
     cp ${temp_dir}/PKGBUILD ${fakeroot_dir}/
     fakeroot tar -cJf ${pkgname}-${pkgver}-${pkgver_postfix}.pkg -C ${fakeroot_dir} .
 
-    #Verzeichnisse saeubern
+    #clean build directories
     rm -rf ${build_dir}/* ${fakeroot_dir}/*
 }
 
@@ -45,15 +45,15 @@ case $1 in
 	    cp ./PKGBUILD ${temp_dir}/
         fi
         source ${temp_dir}/PKGBUILD
-	echo Vorbereiten
+	echo Preparing source ...
         pkg_prepare
-	echo Kompilieren
+	echo Building ...
         pkg_build
-	echo Ueberpruefen
+	echo Running checks ...
         pkg_check
-	echo Installieren
+	echo Installing to fakeroot ...
         pkg_install
-	echo Packen
+	echo Packaging ...
         pkg_package
         ;;
     "install")
@@ -61,7 +61,7 @@ case $1 in
         tar -xJf $2 -C ${temp_dir} ./PKGBUILD
         cd ${temp_dir}
         source ./PKGBUILD
-	echo Postinstall
+	echo Running postinstall ...
         pkg_postinstall
         ;;
     "remove")
@@ -71,12 +71,12 @@ case $1 in
 	rm -f $( cat LINKS )
         rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
         source ./PKGBUILD
-	echo Postremove-Skript
+	echo Running postremove ...
         pkg_remove
         rm ./FILES ./LINKS ./DIRS ./PKGBUILD
         ;;
     "check")
-	echo Checksummen Pruefen
+	echo Verifying checksums ...
         tar -xJf $2 -C ${temp_dir} ./md5sums
 	cd ${temp_dir}
 	grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
@@ -85,16 +85,16 @@ case $1 in
         md5sum -c ${temp_dir}/md5sums
         ;;
     *)
-        echo Einfacher Paketmanager
-        echo Benutzung:
+        echo Simple package manager for use with LFS \(Linux From Scratch\)
+	echo Usage:
         echo -e \\t$0 build
-        echo -e \\t$0 build PKGBUILD-datei
-        echo -e \\t$0 install paket.pkg
-        echo -e \\t$0 remove paket.pkg
-        echo -e \\t$0 check paket.pkg
+        echo -e \\t$0 build PKGBUILD-file
+        echo -e \\t$0 install package.pkg
+        echo -e \\t$0 remove package.pkg
+        echo -e \\t$0 check package.pkg
         ;;
 esac
 
-#cleanup
+#clean up tempfiles
 rm -rf ${temp_dir}
 
