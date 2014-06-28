@@ -31,7 +31,11 @@ pkg_package() {
     #create package
     cd $dir
     cp ${temp_dir}/PKGBUILD ${fakeroot_dir}/
-    fakeroot tar -cJf ${pkgname}-${pkgver}-${pkgver_postfix}.pkg -C ${fakeroot_dir} .
+    if [[ ! -z ${pkgver_postfix} ]]; then
+        fakeroot tar -cJf ${pkgname}-${pkgver}-${pkgver_postfix}.pkg -C ${fakeroot_dir} .
+    else
+        fakeroot tar -cJf ${pkgname}-${pkgver}.pkg -C ${fakeroot_dir} .
+    fi
 
     #clean build directories
     rm -rf ${build_dir}/* ${fakeroot_dir}/*

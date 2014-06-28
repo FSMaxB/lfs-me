@@ -4,7 +4,7 @@ pkgver=1.1.1
 pkgver_postfix="premium-edition"
 
 pkg_prepare() {
-    #Extract
+    #extract
     tar -xf ${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
 
     cd ${build_dir}/${pkgname}-${pkgver}
