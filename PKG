@@ -61,7 +61,7 @@ case $1 in
         pkg_package
         ;;
     "install")
-        tar -xJf $2 -C / --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+        tar -xkJf $2 -C / --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
         tar -xJf $2 -C ${temp_dir} ./PKGBUILD
         cd ${temp_dir}
         source ./PKGBUILD
