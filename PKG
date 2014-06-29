@@ -61,7 +61,16 @@ case $1 in
         pkg_package
         ;;
     "install")
-        tar -xkJf $2 -C / --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+        #Name and path of package file for use in postinstall script
+        package_file=$dir/$2
+        
+        #Option to force overwrite?
+        force=k
+        if [[ $3 == "force" ]]; then
+            force='';
+        fi
+
+        tar -x${force}Jf $2 -C / --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
         tar -xJf $2 -C ${temp_dir} ./PKGBUILD
         cd ${temp_dir}
         source ./PKGBUILD
@@ -93,7 +102,7 @@ case $1 in
 	echo Usage:
         echo -e \\t$0 build
         echo -e \\t$0 build PKGBUILD-file
-        echo -e \\t$0 install package.pkg
+        echo -e \\t$0 install package.pkg \[force\]
         echo -e \\t$0 remove package.pkg
         echo -e \\t$0 check package.pkg
         ;;
