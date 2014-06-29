@@ -63,15 +63,14 @@ case $1 in
     "install")
         #Name and path of package file for use in postinstall script
         package_file=$dir/$2
-        
-        #Option to force overwrite?
-        force=k
-        if [[ $3 == "force" ]]; then
-            force='';
-        fi
 
-        tar -x${force}Jf $2 -C / --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+        #extract files
+        tar -xJf $2 -C ${fakeroot_dir} --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
         tar -xJf $2 -C ${temp_dir} ./PKGBUILD
+
+        #install files with rsync
+        rsync -aK ${fakeroot_dir}/ /
+
         cd ${temp_dir}
         source ./PKGBUILD
 	echo Running postinstall ...
