@@ -101,7 +101,7 @@ case $1 in
 	echo Usage:
         echo -e \\t$0 build
         echo -e \\t$0 build PKGBUILD-file
-        echo -e \\t$0 install package.pkg \[force\]
+        echo -e \\t$0 install package.pkg
         echo -e \\t$0 remove package.pkg
         echo -e \\t$0 check package.pkg
         ;;
