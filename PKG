@@ -61,11 +61,14 @@ case $1 in
         pkg_package
         ;;
     "install")
+        install_prefix=$3
+        mkdir -p ${fakeroot_dir}/${install_prefix}
+
         #Name and path of package file for use in postinstall script
         package_file=$dir/$2
 
         #extract files
-        tar -xJf $2 -C ${fakeroot_dir} --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+        tar -xJf $2 -C ${fakeroot_dir}/${install_prefix} --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
         tar -xJf $2 -C ${temp_dir} ./PKGBUILD
 
         #install files with rsync
@@ -101,7 +104,7 @@ case $1 in
 	echo Usage:
         echo -e \\t$0 build
         echo -e \\t$0 build PKGBUILD-file
-        echo -e \\t$0 install package.pkg
+        echo -e \\t$0 install package.pkg \[/prefix/directory\]
         echo -e \\t$0 remove package.pkg
         echo -e \\t$0 check package.pkg
         ;;
