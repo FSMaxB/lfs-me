@@ -60,7 +60,7 @@ lfs_me_package() {
 
 #Those functions are allowed to be overwriten in PKGBUILD
 lfs_me_prepare() {
-    tar -xf ${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
+    tar -xf ${sources_dir}/${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
 
     cd ${build_dir}/${pkgname}-${pkgver}
 
