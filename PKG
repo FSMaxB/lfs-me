@@ -1,22 +1,39 @@
 #!/bin/bash
 
-temp_dir=$(mktemp -d)
-build_dir=${temp_dir}/build
-fakeroot_dir=${temp_dir}/fakeroot
-dir=$PWD
+#color codes
+color_bred='\e[1;31m'     #Bold red
+color_bgreen='\e[1;32m'   #Bold green
+color_byellow='\e[1;33m'  #Bold yellow
+color_bblue='\e[1;34m'    #Bold blue
+color_reset='\e[0m'       #Reset color
 
-#create directories
-mkdir -pv ${build_dir} ${fakeroot_dir}
+#functions
+lfs_me_help() {
+    echo -e "${color_bblue}Dummy help output${color_reset}"
+}
 
-#set some needed environment variables, if not already
-if [[ ! -z ${LFS+x} ]]; then
-    LFS=/mnt/lfs
-fi
-if [[ ! -z ${LFS_TGT+x} ]]; then
-    LFS_TGT=$(uname -m)-lfs-linux-gnu
-fi
+lfs_me_pause() {
+    read -n1 -r -p "Press any key to continue..."
+}
 
-pkg_package() {
+lfs_me_error() {
+    echo -e "${color_bred}ERROR: ${1}${color_reset}" >&2
+    lfs_me_help
+    lfs_me_cleanup
+    exit 1
+}
+
+lfs_me_message() {
+    echo -e "${color_bgreen}${1}${color_reset}"
+}
+
+lfs_me_cleanup() {
+    #clean up tempfiles
+    if $debug; then pause; fi
+    rm -rf ${temp_dir}
+}
+
+lfs_me_package() {
     #create metadata
     cd ${fakeroot_dir}
     find . -type l > ${fakeroot_dir}/LINKS
@@ -29,7 +46,7 @@ pkg_package() {
     sed -i -e "s/^\\.//" ${fakeroot_dir}/LINKS
 
     #create package
-    cd $dir
+    cd $current_dir
     cp ${temp_dir}/PKGBUILD ${fakeroot_dir}/
     if [[ ! -z ${pkgver_postfix} ]]; then
         fakeroot tar -cJf ${pkgname}-${pkgver}-${pkgver_postfix}.pkg -C ${fakeroot_dir} .
@@ -41,75 +58,259 @@ pkg_package() {
     rm -rf ${build_dir}/* ${fakeroot_dir}/*
 }
 
-case $1 in
+#Those functions are allowed to be overwriten in PKGBUILD
+lfs_me_prepare() {
+    tar -xf ${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
+
+    cd ${build_dir}/${pkgname}-${pkgver}
+
+    ./configure
+}
+
+lfs_me_build() {
+    make
+}
+
+lfs_me_check() {
+    make check 2>&1 | tee "${current_dir}/${pkgname}-check-log"
+}
+
+lfs_me_install() {
+    make DESTDIR="${fakeroot_dir}" install
+}
+
+lfs_me_postinstall() {
+    return
+}
+
+lfs_me_postremove() {
+    return
+}
+
+#initialize variables
+debug=false
+temp_dir="$(mktemp -d)"
+build_dir="${temp_dir}/build"
+fakeroot_dir="${temp_dir}/fakeroot"
+current_dir="$PWD"
+run_checks=true
+install_prefix=""
+mode="undefined"
+
+#create build directory and fakeroot directory
+mkdir -p ${build_dir} ${fakeroot_dir}
+
+#Parse Arguments
+while :
+do
+    case "$1" in
+        -b | --build-dir)
+            build_dir="$2"
+            shift 2
+            if [ ! -d "$build_dir" ]
+            then
+                lfs_me_error "Build directory \"${build_dir}\" not found!"
+            fi
+            ;;
+        -D | --debug)
+            debug=true
+            shift
+            ;;
+        -f | --fakeroot-dir)
+            fakeroot_dir="$2"
+            shift 2
+            if [ ! -d "$fakeroot_dir" ]
+            then
+                lfs_me_error "Fakeroot directory \"${build_dir}\" not found!"
+            fi
+            ;;
+        -h | --help)
+            lfs_me_help
+            lfs_me_cleanup
+            exit 0
+            ;;
+        --no-check)
+            run_checks=false
+            shift
+            ;;
+        --no-color)
+            color_bred=''
+            color_bgreen=''
+            color_byellow=''
+            color_bblue=''
+            color_reset=''
+            shift
+            ;;
+        -p | --prefix)
+            install_prefix="$2"
+            shift 2
+            if [ ! -d "$install_prefix" ]
+            then
+                lfs_me_error "Install prefix \"${install_prefix}\" not found!"
+            fi
+            ;;
+        -s | --sources)
+            sources_dir="$2"
+            if [ ! -d "$sources_dir" ]
+            then
+                lfs_me_error "Sources dir \"${sources_dir}\" not found!"
+            fi
+            shift 2
+            ;;
+        build)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
+            mode="build"
+            pkgbuild_file="$2"
+            if [ ! -f "$pkgbuild_file" ]
+            then
+                lfs_me_error "PKGBUILD file \"${pkgbuild_file}\" not found!"
+            fi
+            shift 2
+            ;;
+        install)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
+            mode="install"
+            package_file="$2"
+            #check if valid tar archive and package file
+            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sum &> /dev/null
+            then
+                lfs_me_error "\"${package_file}\" is not a valid package file!"
+            fi
+            shift 2
+            ;;
+        remove)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
+            mode="remove"
+            package_file="$2"
+            #check if valid tar archive and package file
+            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sum &> /dev/null
+            then
+                lfs_me_error "\"${package_file}\" is not a valid package file!"
+            fi
+            shift 2
+            ;;
+        check)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
+            mode="check"
+            package_file="$2"
+            #check if valid tar archive and package file
+            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sum &> /dev/null
+            then
+                lfs_me_error "\"${package_file}\" is not a valid package file!"
+            fi
+            shift 2
+            ;;
+        -*)
+            lfs_me_error "Unknown option \"$1\""
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+
+case "$mode" in
     "build")
-        if [[ ! -z ${2+x} ]]; then
-            cp $2 ${temp_dir}/PKGBUILD
-	else
-	    cp ./PKGBUILD ${temp_dir}/
+        cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
+        source "${temp_dir}/PKGBUILD"
+        
+        if $debug; then pause; fi
+	    lfs_me_message "Preparing source"
+        lfs_me_prepare
+        
+        if $debug; then pause; fi
+	    lfs_me_message "Building"
+        lfs_me_build
+       
+        if $run_checks
+        then
+            if $debug; then pause; fi
+            lfs_me_message "Running checks"
+            lfs_me_check
         fi
-        source ${temp_dir}/PKGBUILD
-	echo Preparing source ...
-        pkg_prepare
-	echo Building ...
-        pkg_build
-	echo Running checks ...
-        pkg_check
-	echo Installing to fakeroot ...
-        pkg_install
-	echo Packaging ...
-        pkg_package
+        
+        if $debug; then pause; fi
+	    lfs_me_message "Installing to fakeroot"
+        lfs_me_install
+        
+        if $debug; then pause; fi
+	    lfs_me_message "Packaging"
+        lfs_me_package
         ;;
+
     "install")
-        install_prefix=$3
-        mkdir -p ${fakeroot_dir}/${install_prefix}
-
-        #Name and path of package file for use in postinstall script
-        package_file=$dir/$2
-
         #extract files
-        tar -xJf $2 -C ${fakeroot_dir}/${install_prefix} --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
-        tar -xJf $2 -C ${temp_dir} ./PKGBUILD
+        if $debug; then pause; fi
+        mkdir -pv "${fakeroot_dir}/${install_prefix}"
+        lfs_me_message "Extracting package"
+        tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+        tar -xJf "$package_file" -C ${temp_dir} ./PKGBUILD
 
         #install files with rsync
+        if $debug; then pause; fi
+        lfs_me_message "Installing files"
         rsync -aK ${fakeroot_dir}/ /
 
+        #postinstall script
+        if $debug; then pause; fi
         cd ${temp_dir}
         source ./PKGBUILD
-	echo Running postinstall ...
-        pkg_postinstall
+	    lfs_me_message "Running postinstall"
+        lfs_me_postinstall
         ;;
+
     "remove")
-        tar -xJf $2 -C ${temp_dir} ./FILES ./DIRS ./LINKS ./PKGBUILD
-	cd ${temp_dir}
+        #extract meta files
+        if $debug; then pause; fi
+        lfs_me_message "Extracting meta files"
+        tar -xJf "$package_file" -C "${temp_dir}" ./FILES ./DIRS ./LINKS ./PKGBUILD
+
+        #deleting files
+        if $debug; then pause; fi
+        lfs_me_message "Deleting"
+	    cd ${temp_dir}
         rm -f $( cat FILES )
-	rm -f $( cat LINKS )
+	    rm -f $( cat LINKS )
+        #TODO It might be possible to sort this so that there are only empty directories
         rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
+
+        #postremove script
+        if $debug; then pause; fi
+        lfs_me_message "Running postremove"
         source ./PKGBUILD
-	echo Running postremove ...
-        pkg_remove
-        rm ./FILES ./LINKS ./DIRS ./PKGBUILD
+        lfs_me_postremove
         ;;
     "check")
-	echo Verifying checksums ...
+	    #prepare md5sums
+        if $debug; then pause; fi
+        lfs_me_message "Preparing md5sums"
         tar -xJf $2 -C ${temp_dir} ./md5sums
-	cd ${temp_dir}
-	grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
-	mv md5sums.grep md5sums
+	    cd ${temp_dir}
+	    grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
+	    mv md5sums.grep md5sums
+
+        #verify checksums
+        if $debug; then pause; fi
+        lfs_me_message "Verifying checksums"
         cd /
         md5sum -c ${temp_dir}/md5sums
         ;;
     *)
-        echo Simple package manager for use with LFS \(Linux From Scratch\)
-	echo Usage:
-        echo -e \\t$0 build
-        echo -e \\t$0 build PKGBUILD-file
-        echo -e \\t$0 install package.pkg \[/prefix/directory\]
-        echo -e \\t$0 remove package.pkg
-        echo -e \\t$0 check package.pkg
+        lfs_me_error "No action specified!"
         ;;
 esac
 
-#clean up tempfiles
-rm -rf ${temp_dir}
-
+lfs_me_cleanup

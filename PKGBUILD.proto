@@ -1,10 +1,10 @@
 #!/bin/bash
 pkgname=packagename
 pkgver=1.1.1
-pkgver_postfix="premium-edition"
+pkgver_postfix=premium-edition
 
-pkg_prepare() {
-    #extract
+# All the following functions are already provided and you only need them if they differ
+lfs_me_prepare() {
     tar -xf ${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
 
     cd ${build_dir}/${pkgname}-${pkgver}
@@ -12,22 +12,22 @@ pkg_prepare() {
     ./configure
 }
 
-pkg_build() {
+lfs_me_build() {
     make
 }
 
-pkg_check() {
-    make check 2>&1 | tee ${dir}/${pkgname}-check-log
+lfs_me_check() {
+    make check 2>&1 | tee "${current_dir}/${pkgname}-check-log"
 }
 
-pkg_install() {
+lfs_me_install() {
     make DESTDIR="${fakeroot_dir}" install
 }
 
-pkg_postinstall() {
+lfs_me_postinstall() {
     return
 }
 
-pkg_remove() {
+lfs_me_postremove() {
     return
 }
