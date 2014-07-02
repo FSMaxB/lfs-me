@@ -262,7 +262,7 @@ case "$mode" in
         #install files with rsync
         if $debug; then lfs_me_pause; fi
         lfs_me_message "Installing files"
-        rsync -aK ${fakeroot_dir}/ /
+        rsync -rlpgoDK "${fakeroot_dir}/" /
 
         #postinstall script
         if $debug; then lfs_me_pause; fi
