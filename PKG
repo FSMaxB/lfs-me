@@ -29,7 +29,7 @@ lfs_me_message() {
 
 lfs_me_cleanup() {
     #clean up tempfiles
-    if $debug; then pause; fi
+    if $debug; then lfs_me_pause; fi
     rm -rf ${temp_dir}
 }
 
@@ -60,9 +60,9 @@ lfs_me_package() {
 
 #Those functions are allowed to be overwriten in PKGBUILD
 lfs_me_prepare() {
-    tar -xf ${sources_dir}/${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
+    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "${build_dir}"
 
-    cd ${build_dir}/${pkgname}-${pkgver}
+    cd "${build_dir}/${pkgname}-${pkgver}"
 
     ./configure
 }
@@ -178,7 +178,7 @@ do
             mode="install"
             package_file="$2"
             #check if valid tar archive and package file
-            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sum &> /dev/null
+            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
             then
                 lfs_me_error "\"${package_file}\" is not a valid package file!"
             fi
@@ -192,7 +192,7 @@ do
             mode="remove"
             package_file="$2"
             #check if valid tar archive and package file
-            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sum &> /dev/null
+            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
             then
                 lfs_me_error "\"${package_file}\" is not a valid package file!"
             fi
@@ -206,7 +206,7 @@ do
             mode="check"
             package_file="$2"
             #check if valid tar archive and package file
-            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sum &> /dev/null
+            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
             then
                 lfs_me_error "\"${package_file}\" is not a valid package file!"
             fi
@@ -227,45 +227,45 @@ case "$mode" in
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
         source "${temp_dir}/PKGBUILD"
         
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Preparing source"
         lfs_me_prepare
         
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Building"
         lfs_me_build
        
         if $run_checks
         then
-            if $debug; then pause; fi
+            if $debug; then lfs_me_pause; fi
             lfs_me_message "Running checks"
             lfs_me_check
         fi
         
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Installing to fakeroot"
         lfs_me_install
         
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Packaging"
         lfs_me_package
         ;;
 
     "install")
         #extract files
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         mkdir -pv "${fakeroot_dir}/${install_prefix}"
         lfs_me_message "Extracting package"
         tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
         tar -xJf "$package_file" -C ${temp_dir} ./PKGBUILD
 
         #install files with rsync
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         lfs_me_message "Installing files"
         rsync -aK ${fakeroot_dir}/ /
 
         #postinstall script
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         cd ${temp_dir}
         source ./PKGBUILD
 	    lfs_me_message "Running postinstall"
@@ -274,12 +274,12 @@ case "$mode" in
 
     "remove")
         #extract meta files
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         lfs_me_message "Extracting meta files"
         tar -xJf "$package_file" -C "${temp_dir}" ./FILES ./DIRS ./LINKS ./PKGBUILD
 
         #deleting files
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         lfs_me_message "Deleting"
 	    cd ${temp_dir}
         rm -f $( cat FILES )
@@ -288,25 +288,25 @@ case "$mode" in
         rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
 
         #postremove script
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         lfs_me_message "Running postremove"
         source ./PKGBUILD
         lfs_me_postremove
         ;;
     "check")
 	    #prepare md5sums
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         lfs_me_message "Preparing md5sums"
-        tar -xJf $2 -C ${temp_dir} ./md5sums
-	    cd ${temp_dir}
+        tar -xJf "$package_file" -C "$temp_dir" ./md5sums
+	    cd "$temp_dir"
 	    grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
 	    mv md5sums.grep md5sums
 
         #verify checksums
-        if $debug; then pause; fi
+        if $debug; then lfs_me_pause; fi
         lfs_me_message "Verifying checksums"
         cd /
-        md5sum -c ${temp_dir}/md5sums
+        md5sum -c "$temp_dir/md5sums"
         ;;
     *)
         lfs_me_error "No action specified!"
