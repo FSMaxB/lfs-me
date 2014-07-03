@@ -5,9 +5,9 @@ pkgver_postfix=premium-edition
 
 # All the following functions are already provided and you only need them if they differ
 lfs_me_prepare() {
-    tar -xf ${sources_dir}/${pkgname}-${pkgver}.tar.bz2 -C ${build_dir}
+    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "$build_dir"
 
-    cd ${build_dir}/${pkgname}-${pkgver}
+    cd "${build_dir}/${pkgname}-${pkgver}"
 
     ./configure
 }

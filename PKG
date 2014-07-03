@@ -95,7 +95,7 @@ fakeroot_dir="${temp_dir}/fakeroot"
 current_dir="$PWD"
 run_checks=true
 install_prefix=""
-sources_dir="."
+sources_dir="$current_dir"
 mode="undefined"
 
 #create build directory and fakeroot directory
