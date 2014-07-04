@@ -51,7 +51,7 @@ lfs_me_package() {
     if [[ ! -z ${pkgver_postfix} ]]; then
         fakeroot tar -cJf "${pkgname}-${pkgver}-${pkgver_postfix}.pkg" -C "$fakeroot_dir" .
     else
-        fakeroot tar -cJf "${pkgname}-${pkgver}.pkg" -C "${fakeroot_dir}" .
+        fakeroot tar -cJf "${pkgname}-${pkgver}.pkg" -C "$fakeroot_dir" .
     fi
 
     #clean build directories
@@ -64,7 +64,7 @@ lfs_me_prepare() {
 
     cd "${build_dir}/${pkgname}-${pkgver}"
 
-    ./configure
+    ./configure --prefix=/usr
 }
 
 lfs_me_build() {
@@ -228,60 +228,86 @@ case "$mode" in
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
         source "${temp_dir}/PKGBUILD"
         
-        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Preparing source"
-        lfs_me_prepare
+        if $debug
+        then
+            lfs_me_pause
+            lfs_me_prepare 2>&1 | tee "${current_dir}/${pkgname}-prepare-log"
+        else
+            lfs_me_prepare
+        fi
         
-        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Building"
-        lfs_me_build
+        if $debug
+        then 
+            lfs_me_pause
+            lfs_me_build 2>&1 | tee "${current_dir}/${pkgname}-build-log"
+        else
+            lfs_me_build
+        fi
        
         if $run_checks
         then
-            if $debug; then lfs_me_pause; fi
             lfs_me_message "Running checks"
+            if $debug; then lfs_me_pause; fi
             lfs_me_check
         fi
         
-        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Installing to fakeroot"
-        lfs_me_install
+        if $debug
+        then 
+            lfs_me_pause
+            lfs_me_install 2>&1 | tee "${current_dir}/${pkgname}-install-log"
+
+        else
+            lfs_me_install
+        fi
         
-        if $debug; then lfs_me_pause; fi
 	    lfs_me_message "Packaging"
+        if $debug; then lfs_me_pause; fi
         lfs_me_package
         ;;
 
     "install")
         #extract files
+        lfs_me_message "Extracting package"
         if $debug; then lfs_me_pause; fi
         mkdir -pv "${fakeroot_dir}/${install_prefix}"
-        lfs_me_message "Extracting package"
         tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
         tar -xJf "$package_file" -C ${temp_dir} ./PKGBUILD
 
         #install files with rsync
-        if $debug; then lfs_me_pause; fi
         lfs_me_message "Installing files"
-        rsync -rlpgoDK "${fakeroot_dir}/" /
+        if $debug
+        then 
+            lfs_me_pause
+            rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${current_dir}/${pkgname}-install-log"
+        else
+            rsync -rlpgoDK "${fakeroot_dir}/" /
+        fi
 
         #postinstall script
-        if $debug; then lfs_me_pause; fi
+	    lfs_me_message "Running postinstall"
         cd "$temp_dir"
         source ./PKGBUILD
-	    lfs_me_message "Running postinstall"
-        lfs_me_postinstall
+        if $debug
+        then 
+            lfs_me_pause
+            lfs_me_postinstall 2>&1 | tee "${current_dir}/${pkgname}-postinstall-log"
+        else
+            lfs_me_postinstall
+        fi
         ;;
 
     "remove")
         #extract meta files
-        if $debug; then lfs_me_pause; fi
         lfs_me_message "Extracting meta files"
+        if $debug; then lfs_me_pause; fi
         tar -xJf "$package_file" -C "$temp_dir" ./FILES ./DIRS ./LINKS ./PKGBUILD
 
         #deleting files
-        if $debug; then lfs_me_pause; fi
         lfs_me_message "Deleting"
+        if $debug; then lfs_me_pause; fi
 	    cd "$temp_dir"
         #TODO: What about filenames with spaces and/or newline characters?
         rm -f $( cat FILES )
@@ -290,25 +316,35 @@ case "$mode" in
         rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
 
         #postremove script
-        if $debug; then lfs_me_pause; fi
         lfs_me_message "Running postremove"
         source ./PKGBUILD
-        lfs_me_postremove
+        if $debug
+        then 
+            lfs_me_pause
+            lfs_me_postremove 2>&1 | tee "${current_dir}/${pkgname}-postremove-log"
+        else
+            lfs_me_postremove
+        fi
         ;;
     "check")
 	    #prepare md5sums
-        if $debug; then lfs_me_pause; fi
         lfs_me_message "Preparing md5sums"
+        if $debug; then lfs_me_pause; fi
         tar -xJf "$package_file" -C "$temp_dir" ./md5sums
 	    cd "$temp_dir"
 	    grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
 	    mv md5sums.grep md5sums
 
         #verify checksums
-        if $debug; then lfs_me_pause; fi
         lfs_me_message "Verifying checksums"
         cd /
-        md5sum -c "$temp_dir/md5sums"
+        if $debug
+        then 
+            lfs_me_pause
+            md5sum -c "$temp_dir/md5sums" 2>&1 | tee "${current_dir}/${pkgname}-check-log"
+        else
+            md5sum -c "$temp_dir/md5sums"
+        fi
         ;;
     *)
         lfs_me_error "No action specified!"
