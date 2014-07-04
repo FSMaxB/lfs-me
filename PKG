@@ -30,37 +30,37 @@ lfs_me_message() {
 lfs_me_cleanup() {
     #clean up tempfiles
     if $debug; then lfs_me_pause; fi
-    rm -rf ${temp_dir}
+    rm -rf "$temp_dir"
 }
 
 lfs_me_package() {
     #create metadata
-    cd ${fakeroot_dir}
-    find . -type l > ${fakeroot_dir}/LINKS
-    find . -type f > ${fakeroot_dir}/FILES
-    find . -type d > ${fakeroot_dir}/DIRS
-    find . -type f -exec md5sum {} \; | grep -ve "\\./md5sums$" > ${fakeroot_dir}/md5sums
+    cd "$fakeroot_dir"
+    find . -type l > "${fakeroot_dir}/LINKS"
+    find . -type f > "${fakeroot_dir}/FILES"
+    find . -type d > "${fakeroot_dir}/DIRS"
+    find . -type f -exec md5sum {} \; | grep -ve "\\./md5sums$" > "${fakeroot_dir}/md5sums"
     #remove "." from the beginning of pathnames
-    sed -i -e "s/^\\.//" ${fakeroot_dir}/FILES
-    sed -i -e "s/^\\.//" ${fakeroot_dir}/DIRS
-    sed -i -e "s/^\\.//" ${fakeroot_dir}/LINKS
+    sed -i -e "s/^\\.//" "${fakeroot_dir}/FILES"
+    sed -i -e "s/^\\.//" "${fakeroot_dir}/DIRS"
+    sed -i -e "s/^\\.//" "${fakeroot_dir}/LINKS"
 
     #create package
-    cd $current_dir
-    cp ${temp_dir}/PKGBUILD ${fakeroot_dir}/
+    cd "$current_dir"
+    cp "${temp_dir}/PKGBUILD" "${fakeroot_dir}/"
     if [[ ! -z ${pkgver_postfix} ]]; then
-        fakeroot tar -cJf ${pkgname}-${pkgver}-${pkgver_postfix}.pkg -C ${fakeroot_dir} .
+        fakeroot tar -cJf "${pkgname}-${pkgver}-${pkgver_postfix}.pkg" -C "$fakeroot_dir" .
     else
-        fakeroot tar -cJf ${pkgname}-${pkgver}.pkg -C ${fakeroot_dir} .
+        fakeroot tar -cJf "${pkgname}-${pkgver}.pkg" -C "${fakeroot_dir}" .
     fi
 
     #clean build directories
-    rm -rf ${build_dir}/* ${fakeroot_dir}/*
+    rm -rf "${build_dir}/*" "${fakeroot_dir}/*"
 }
 
 #Those functions are allowed to be overwriten in PKGBUILD
 lfs_me_prepare() {
-    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "${build_dir}"
+    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "$build_dir"
 
     cd "${build_dir}/${pkgname}-${pkgver}"
 
@@ -99,7 +99,7 @@ sources_dir="$current_dir"
 mode="undefined"
 
 #create build directory and fakeroot directory
-mkdir -p ${build_dir} ${fakeroot_dir}
+mkdir -p "$build_dir" "$fakeroot_dir"
 
 #Parse Arguments
 while :
@@ -179,7 +179,7 @@ do
             mode="install"
             package_file="$2"
             #check if valid tar archive and package file
-            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
+            if ! tar -tf "$package_file" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
             then
                 lfs_me_error "\"${package_file}\" is not a valid package file!"
             fi
@@ -193,7 +193,7 @@ do
             mode="remove"
             package_file="$2"
             #check if valid tar archive and package file
-            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
+            if ! tar -tf "$package_file" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
             then
                 lfs_me_error "\"${package_file}\" is not a valid package file!"
             fi
@@ -207,7 +207,7 @@ do
             mode="check"
             package_file="$2"
             #check if valid tar archive and package file
-            if ! tar -tf "${package_file}" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
+            if ! tar -tf "$package_file" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
             then
                 lfs_me_error "\"${package_file}\" is not a valid package file!"
             fi
@@ -267,7 +267,7 @@ case "$mode" in
 
         #postinstall script
         if $debug; then lfs_me_pause; fi
-        cd ${temp_dir}
+        cd "$temp_dir"
         source ./PKGBUILD
 	    lfs_me_message "Running postinstall"
         lfs_me_postinstall
@@ -277,15 +277,16 @@ case "$mode" in
         #extract meta files
         if $debug; then lfs_me_pause; fi
         lfs_me_message "Extracting meta files"
-        tar -xJf "$package_file" -C "${temp_dir}" ./FILES ./DIRS ./LINKS ./PKGBUILD
+        tar -xJf "$package_file" -C "$temp_dir" ./FILES ./DIRS ./LINKS ./PKGBUILD
 
         #deleting files
         if $debug; then lfs_me_pause; fi
         lfs_me_message "Deleting"
-	    cd ${temp_dir}
+	    cd "$temp_dir"
+        #TODO: What about filenames with spaces and/or newline characters?
         rm -f $( cat FILES )
 	    rm -f $( cat LINKS )
-        #TODO It might be possible to sort this so that there are only empty directories
+        #TODO: It might be possible to sort this so that there are only empty directories
         rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
 
         #postremove script
