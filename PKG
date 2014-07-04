@@ -64,7 +64,7 @@ lfs_me_prepare() {
 
     cd "${build_dir}/${pkgname}-${pkgver}"
 
-    ./configure
+    ./configure --prefix=/usr
 }
 
 lfs_me_build() {
