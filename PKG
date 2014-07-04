@@ -229,8 +229,13 @@ case "$mode" in
         source "${temp_dir}/PKGBUILD"
         
 	    lfs_me_message "Preparing source"
-        if $debug; then lfs_me_pause; fi
-        lfs_me_prepare
+        if $debug
+        then
+            lfs_me_pause
+            lfs_me_prepare 2>&1 | tee "${current_dir}/${pkgname}-prepare-log"
+        else
+            lfs_me_prepare
+        fi
         
 	    lfs_me_message "Building"
         if $debug
