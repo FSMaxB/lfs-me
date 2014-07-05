@@ -21,7 +21,7 @@ lfs_me_check() {
 }
 
 lfs_me_install() {
-    make DESTDIR="${fakeroot_dir}" install
+    make DESTDIR="$fakeroot_dir" install
 }
 
 lfs_me_postinstall() {
