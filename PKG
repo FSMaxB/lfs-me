@@ -1,6 +1,10 @@
 #!/bin/bash
 
 #color codes
+color_red='\e[0;31m'      #Red
+color_green='\e[0;32m'    #Green
+color_yellow='\e[0;33m'   #Yellow
+color_blue='\e[0;34m'     #Blue
 color_bred='\e[1;31m'     #Bold red
 color_bgreen='\e[1;32m'   #Bold green
 color_byellow='\e[1;33m'  #Bold yellow
@@ -135,6 +139,10 @@ do
             shift
             ;;
         --no-color)
+            color_red=''
+            color_green=''
+            color_yellow=''
+            color_blue=''
             color_bred=''
             color_bgreen=''
             color_byellow=''
