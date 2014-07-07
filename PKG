@@ -232,7 +232,8 @@ case "$mode" in
         if $debug
         then
             lfs_me_pause
-            lfs_me_prepare 2>&1 | tee "${current_dir}/${pkgname}-prepare-log"
+            #for some weird reason I can't use tee here to save the output
+            lfs_me_prepare
         else
             lfs_me_prepare
         fi
