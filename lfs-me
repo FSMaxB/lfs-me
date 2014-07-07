@@ -13,7 +13,29 @@ color_reset='\e[0m'       #Reset color
 
 #functions
 lfs_me_help() {
-    echo -e "${color_bblue}Dummy help output${color_reset}"
+    echo -e "${color_blue}LFS-ME ( Linux From Scratch made [more] easy ), a simple fakeroot based package manager for Linux from Scratch.\n"
+
+    echo -e "${color_bblue}Usage:"
+    echo -e "${color_blue}${0} ${color_bblue}mode [Options]${color_reset}\n"
+
+    echo -e "${color_bblue}Modes:"
+    echo -e "${color_bblue} build   ${color_blue}PKGBUILD-file    Build the package specified by PKGBUILD-file"
+    echo -e "${color_bblue} install ${color_blue}package.pkg      Install the package package.pkg"
+    echo -e "${color_bblue} remove  ${color_blue}package.pkg      Remove the package package.pkg, use this with care!"
+    echo -e "${color_bblue} check   ${color_blue}package.pkg      Verify checksums of files installed by package.pkg\n"
+
+    echo -e "${color_bblue}Options:"
+    echo -e "${color_bblue} -b | --build-dir      ${color_blue}Specify the build directory"
+    echo -e "${color_bblue} -D | --debug          ${color_blue}Enable debug mode"
+    echo -e "${color_bblue} -f | --fakeroot_dir   ${color_blue}Specify the fakeroot directory"
+    echo -e "${color_bblue} -h | --help           ${color_blue}Show this help"
+    echo -e "${color_bblue}    | --no-checks      ${color_blue}Don't run checks"
+    echo -e "${color_bblue}    | --no-color       ${color_blue}Disable color output"
+    echo -e "${color_bblue} -p | --prefix         ${color_blue}Set install prefix"
+    echo -e "${color_bblue} -s | --sources        ${color_blue}Set directory with source tarballs"
+    echo -e "${color_reset}"
+
+
 }
 
 lfs_me_pause() {
