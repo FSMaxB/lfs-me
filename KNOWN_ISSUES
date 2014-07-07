@@ -1,2 +1,2 @@
 * The debug mode currently doesn't work, because for some reason the working directory changes between executing the different functions
-* Using the remove option may destroy the system by deleting important symlinks such als /lib64
+* Using the remove option may destroy the system by deleting files that are also installed by other packages 

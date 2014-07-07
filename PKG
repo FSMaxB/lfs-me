@@ -311,9 +311,16 @@ case "$mode" in
 	    cd "$temp_dir"
         #TODO: What about filenames with spaces and/or newline characters?
         rm -f $( cat FILES )
-	    rm -f $( cat LINKS )
         #TODO: It might be possible to sort this so that there are only empty directories
         rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
+        for file in $( cat LINKS )
+        do
+            #only remove broken symlinks
+            if ! test -r "$file"
+            then
+                rm -f "$file"
+            fi
+        done
 
         #postremove script
         lfs_me_message "Running postremove"
