@@ -34,8 +34,31 @@ lfs_me_help() {
     echo -e "${color_bblue} -p | --prefix         ${color_blue}Set install prefix"
     echo -e "${color_bblue} -s | --sources        ${color_blue}Set directory with source tarballs"
     echo -e "${color_reset}"
+}
 
-
+lfs_me_sources() {
+    if [[ ! -z ${sources+x} ]]
+    then
+        for file in ${sources[@]}
+        do
+            # Does the file exist?
+            if [ ! -f "${sources_dir}/$(basename "$file")" ]
+            then
+                if echo $file | grep -qE '(https?|ftp)://.*'    #URL?
+                then
+                    if ! wget "$file" -O "${sources_dir}/$(basename "$file")"
+                    then
+                        rm "${sources_dir}/$(basename "$file")"
+                        lfs_me_error "Download of '$file' failed!"
+                    fi
+                else
+                    lfs_me_error "The Source file '${sources_dir}/$file' doesn't exist!"
+                fi
+            fi
+        done
+    else
+        echo -e "${color_bred}Please provide a 'sources' array in the PKGBUILD file.${color_reset}"
+    fi
 }
 
 lfs_me_pause() {
@@ -201,6 +224,19 @@ do
             fi
             shift 2
             ;;
+        download)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
+            mode="download"
+            pkgbuild_file="$2"
+            if [ ! -f "$pkgbuild_file" ]
+            then
+                lfs_me_error "PKGBUILD file \"${pkgbuild_file}\" not found!"
+            fi
+            shift 2
+            ;;
         install)
             if [ "$mode" != "undefined" ]
             then
@@ -258,6 +294,9 @@ case "$mode" in
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
         source "${temp_dir}/PKGBUILD"
         
+        lfs_me_message "Getting sources"
+        lfs_me_sources
+
 	    lfs_me_message "Preparing source"
         if $debug
         then
@@ -297,6 +336,14 @@ case "$mode" in
 	    lfs_me_message "Packaging"
         if $debug; then lfs_me_pause; fi
         lfs_me_package
+        ;;
+
+    "download")
+        cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
+        source "${temp_dir}/PKGBUILD"
+
+        lfs_me_message "Getting sources"
+        lfs_me_sources
         ;;
 
     "install")
