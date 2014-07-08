@@ -27,64 +27,72 @@ lfs_me_help() {
     echo -e "${color_bblue} download  ${color_blue}PKGBUILD-file    Download source files\n"
 
     echo -e "${color_bblue}Options:"
-    echo -e "${color_bblue} -b | --build-dir      ${color_blue}Specify the build directory"
-    echo -e "${color_bblue} -D | --debug          ${color_blue}Enable debug mode"
-    echo -e "${color_bblue} -f | --fakeroot_dir   ${color_blue}Specify the fakeroot directory"
-    echo -e "${color_bblue} -h | --help           ${color_blue}Show this help"
-    echo -e "${color_bblue}    | --no-checks      ${color_blue}Don't run checks"
-    echo -e "${color_bblue}    | --no-color       ${color_blue}Disable color output"
-    echo -e "${color_bblue} -p | --prefix         ${color_blue}Set install prefix"
-    echo -e "${color_bblue} -s | --sources        ${color_blue}Set directory with source tarballs"
+    echo -e "${color_bblue} -b | --build-dir         ${color_blue}Specify the build directory"
+    echo -e "${color_bblue} -D | --debug             ${color_blue}Enable debug mode"
+    echo -e "${color_bblue} -f | --fakeroot_dir      ${color_blue}Specify the fakeroot directory"
+    echo -e "${color_bblue} -h | --help              ${color_blue}Show this help"
+    echo -e "${color_bblue}    | --no-checks         ${color_blue}Don't run checks"
+    echo -e "${color_bblue}    | --no-color          ${color_blue}Disable color output"
+    echo -e "${color_bblue}    | --no-downloads      ${color_blue}Don't download sources"
+    echo -e "${color_bblue}    | --ignore-checksums  ${color_blue}Don't verify checksums"
+    echo -e "${color_bblue} -p | --prefix            ${color_blue}Set install prefix"
+    echo -e "${color_bblue} -s | --sources           ${color_blue}Set directory with source tarballs"
     echo -e "${color_reset}"
 }
 
 lfs_me_sources() {
-    #Download missing files
-    if [[ ! -z ${sources+x} ]]
+    if $download_sources
     then
-        for file in ${sources[@]}
-        do
-            # Does the file exist?
-            if [ ! -f "${sources_dir}/$(basename "$file")" ]
-            then
-                if echo $file | grep -qE '(https?|ftp)://.*'    #URL?
+        #Download missing files
+        if [[ ! -z ${sources+x} ]]
+        then
+            for file in ${sources[@]}
+            do
+                # Does the file exist?
+                if [ ! -f "${sources_dir}/$(basename "$file")" ]
                 then
-                    if ! wget "$file" -O "${sources_dir}/$(basename "$file")"
+                    if echo $file | grep -qE '(https?|ftp)://.*'    #URL?
                     then
-                        rm "${sources_dir}/$(basename "$file")"
-                        lfs_me_error "Download of '$file' failed!"
+                        if ! wget "$file" -O "${sources_dir}/$(basename "$file")"
+                        then
+                            rm "${sources_dir}/$(basename "$file")"
+                            lfs_me_error "Download of '$file' failed!"
+                        fi
+                    else
+                        lfs_me_error "The Source file '${sources_dir}/$file' doesn't exist!"
                     fi
-                else
-                    lfs_me_error "The Source file '${sources_dir}/$file' doesn't exist!"
                 fi
-            fi
-        done
-    else
-        echo -e "${color_bred}Please provide a 'sources' array in the PKGBUILD file.${color_reset}"
+            done
+        else
+            echo -e "${color_bred}Please provide a 'sources' array in the PKGBUILD file.${color_reset}"
+        fi
     fi
 
-    #Verify all the checksums
-    if [[ ! -z ${sha1sums+x} ]]
+    if $verify_checksums
     then
-        sources_size=${#sources[@]}
-        if [ $sources_size != ${#sha1sums[@]} ]
+        #Verify all the checksums
+        if [[ ! -z ${sha1sums+x} ]]
         then
-            lfs_me_error "The number of source files and SHA1 sums differ."
-        fi
-       
-        #Now actually verify the checksums
-        for i in `seq 0 $(($sources_size - 1))`
-        do
-            IFS=' ' read -a sum <<< $(sha1sum "${sources_dir}/$(basename ${sources[$i]})")
-            if [[ ${sum[0]} == "${sha1sums[$i]}" ]]
+            sources_size=${#sources[@]}
+            if [ $sources_size != ${#sha1sums[@]} ]
             then
-                echo "$(basename "${sources[$i]}") OK"
-            else
-                lfs_me_error "The SHA1 sum for '$(basename ${sources[$i]})' doesn't match."
+                lfs_me_error "The number of source files and SHA1 sums differ."
             fi
-        done
-    else
-        echo -e "${color_bred}Please provide a 'sha1sums' array in the PKGBUILD file.${color_reset}"
+           
+            #Now actually verify the checksums
+            for i in `seq 0 $(($sources_size - 1))`
+            do
+                IFS=' ' read -a sum <<< $(sha1sum "${sources_dir}/$(basename ${sources[$i]})")
+                if [[ ${sum[0]} == "${sha1sums[$i]}" ]]
+                then
+                    echo "$(basename "${sources[$i]}") OK"
+                else
+                    lfs_me_error "The SHA1 sum for '$(basename ${sources[$i]})' doesn't match."
+                fi
+            done
+        else
+            echo -e "${color_bred}Please provide a 'sha1sums' array in the PKGBUILD file.${color_reset}"
+        fi
     fi
 }
 
@@ -181,6 +189,8 @@ build_dir="${temp_dir}/build"
 fakeroot_dir="${temp_dir}/fakeroot"
 current_dir="$PWD"
 run_checks=true
+download_sources=true
+verify_checksums=true
 install_prefix=""
 sources_dir="$current_dir"
 mode="undefined"
@@ -231,6 +241,14 @@ do
             color_byellow=''
             color_bblue=''
             color_reset=''
+            shift
+            ;;
+        --no-downloads)
+            download_sources=false
+            shift
+            ;;
+        --ignore-checksums)
+            verify_checksums=false
             shift
             ;;
         -p | --prefix)
