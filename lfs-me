@@ -39,6 +39,7 @@ lfs_me_help() {
 }
 
 lfs_me_sources() {
+    #Download missing files
     if [[ ! -z ${sources+x} ]]
     then
         for file in ${sources[@]}
@@ -60,6 +61,30 @@ lfs_me_sources() {
         done
     else
         echo -e "${color_bred}Please provide a 'sources' array in the PKGBUILD file.${color_reset}"
+    fi
+
+    #Verify all the checksums
+    if [[ ! -z ${sha1sums+x} ]]
+    then
+        sources_size=${#sources[@]}
+        if [ $sources_size != ${#sha1sums[@]} ]
+        then
+            lfs_me_error "The number of source files and SHA1 sums differ."
+        fi
+       
+        #Now actually verify the checksums
+        for i in `seq 0 $(($sources_size - 1))`
+        do
+            IFS=' ' read -a sum <<< $(sha1sum "${sources_dir}/$(basename ${sources[$i]})")
+            if [[ ${sum[0]} == "${sha1sums[$i]}" ]]
+            then
+                echo "$(basename "${sources[$i]}") OK"
+            else
+                lfs_me_error "The SHA1 sum for '$(basename ${sources[$i]})' doesn't match."
+            fi
+        done
+    else
+        echo -e "${color_bred}Please provide a 'sha1sums' array in the PKGBUILD file.${color_reset}"
     fi
 }
 
