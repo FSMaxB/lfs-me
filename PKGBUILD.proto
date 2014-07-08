@@ -3,6 +3,11 @@ pkgname=packagename
 pkgver=1.1.1
 pkgver_postfix=premium-edition
 
+sources=( "http://www.somedomain.com/${pkgname}-${pkgver}.tar.bz2"  #URL
+          "install.txt" )   # local file
+sha1sums=( '046fb3a32f7c2b21ae30d7f5566b112ca577f1dc'
+           '9885f59aa51fa20e67c4c8454f2a931d7722c73a' )
+
 # All the following functions are already provided and you only need them if they differ
 lfs_me_prepare() {
     tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "$build_dir"
