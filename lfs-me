@@ -19,10 +19,11 @@ lfs_me_help() {
     echo -e "${color_blue}${0} ${color_bblue}mode [Options]${color_reset}\n"
 
     echo -e "${color_bblue}Modes:"
-    echo -e "${color_bblue} build   ${color_blue}PKGBUILD-file    Build the package specified by PKGBUILD-file"
-    echo -e "${color_bblue} install ${color_blue}package.pkg      Install the package package.pkg"
-    echo -e "${color_bblue} remove  ${color_blue}package.pkg      Remove the package package.pkg, use this with care!"
-    echo -e "${color_bblue} check   ${color_blue}package.pkg      Verify checksums of files installed by package.pkg\n"
+    echo -e "${color_bblue} build    ${color_blue}PKGBUILD-file    Build the package specified by PKGBUILD-file"
+    echo -e "${color_bblue} install  ${color_blue}package.pkg      Install the package package.pkg"
+    echo -e "${color_bblue} remove   ${color_blue}package.pkg      Remove the package package.pkg, use this with care!"
+    echo -e "${color_bblue} check    ${color_blue}package.pkg      Verify checksums of files installed by package.pkg"
+    echo -e "${color_bblue} download ${color_blue}PKGBUILD-file    Download source files\n"
 
     echo -e "${color_bblue}Options:"
     echo -e "${color_bblue} -b | --build-dir      ${color_blue}Specify the build directory"
