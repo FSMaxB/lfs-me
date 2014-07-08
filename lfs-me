@@ -101,7 +101,7 @@ lfs_me_checksums() {
     echo "sha1sums=("
     for file in ${sources[@]}
     do
-        IFS=' ' read -a checksum <<< "$(sha1sum $(basename $file))"
+        IFS=' ' read -a checksum <<< "$(sha1sum "${sources_dir}/$(basename $file)")"
         echo "'${checksum[0]}'"
     done
     echo ")"
