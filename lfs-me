@@ -227,7 +227,7 @@ do
             lfs_me_cleanup
             exit 0
             ;;
-        --no-check)
+        --no-checks)
             run_checks=false
             shift
             ;;
