@@ -29,7 +29,7 @@ lfs_me_help() {
     echo -e "${color_bblue}Options:"
     echo -e "${color_bblue} -b | --build-dir         ${color_blue}Specify the build directory"
     echo -e "${color_bblue} -D | --debug             ${color_blue}Enable debug mode"
-    echo -e "${color_bblue} -f | --fakeroot_dir      ${color_blue}Specify the fakeroot directory"
+    echo -e "${color_bblue} -f | --fakeroot-dir      ${color_blue}Specify the fakeroot directory"
     echo -e "${color_bblue} -h | --help              ${color_blue}Show this help"
     echo -e "${color_bblue}    | --no-checks         ${color_blue}Don't run checks"
     echo -e "${color_bblue}    | --no-color          ${color_blue}Disable color output"
