@@ -212,6 +212,12 @@ install_prefix=""
 sources_dir="$current_dir"
 mode="undefined"
 
+#load configuration file
+if [ -s ~/.lfs-me ]
+then
+    source ~/.lfs-me
+fi
+
 #create build directory and fakeroot directory
 mkdir -p "$build_dir" "$fakeroot_dir"
 
