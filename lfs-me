@@ -514,7 +514,7 @@ case "$mode" in
 
         #verify checksums
         lfs_me_message "Verifying checksums"
-        cd /
+        cd "${install_prefix}/"
         if $debug
         then 
             lfs_me_pause
