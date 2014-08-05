@@ -1,5 +1,11 @@
 Changelog
 =========
+
+v0.1.2
+------
+* Fix potential issue with relative pathnames
+* Critical fix: Remove now respects install_prefix
+
 v0.1.1
 ------
 * Config file `~/lfs-me`
