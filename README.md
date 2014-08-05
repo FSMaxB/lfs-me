@@ -35,7 +35,7 @@ Create a new package by copying and modifying `PKGBUILD.proto`. The *PKGBUILD* i
 #### Variables:
 * `pkgname`: The name of the package.
 * `pkgver`: The version string for the package.
-* `pkgver_postfix`: A postfix string that is added after the version string.
+* `pkgver_postfix`: A postfix string that is added after the version string. This **mustn't** start with `-`!
 * `sources`: An array containing the download URLs of the source files.
 * `sha1sums`: An array containing the SHA1 checksums of the sources files in order to check the integrity.
 

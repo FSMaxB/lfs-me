@@ -182,6 +182,30 @@ lfs_me_package() {
     rm -rf "${build_dir}/*" "${fakeroot_dir}/*"
 }
 
+lfs_me_indexadd() {
+    lfs_me_message "Adding to package index"
+    if [[ -z "$pkgver_postfix" ]]
+    then
+        index_entry="${index_dir}/${pkgname}/${pkgver}"
+    else
+        index_entry="${index_dir}/${pkgname}/${pkgver}-${pkgver_postfix}"
+    fi
+    mkdir -p "$index_entry"
+    cp "$temp_dir"/{PKGBUILD,md5sums,FILES,DIRS,LINKS} "$index_entry"
+}
+
+lfs_me_indexremove() {
+    lfs_me_message "Removing from package index"
+    if [[ -z "$pkgver_postfix" ]]
+    then
+        index_entry="${index_dir}/${pkgname}/${pkgver}"
+    else
+        index_entry="${index_dir}/${pkgname}/${pkgver}-${pkgver_postfix}"
+    fi
+    rm "$index_entry"/{PKGBUILD,md5sums,FILES,DIRS,LINKS}
+    rmdir -p --ignore-fail-on-non-empty "$index_entry"
+}
+
 #extract and load a package file
 lfs_me_load_package() {
     #extract meta files
@@ -228,6 +252,7 @@ debug=false
 temp_dir="$(mktemp -d)"
 build_dir="${temp_dir}/build"
 fakeroot_dir="${temp_dir}/fakeroot"
+index_dir="/var/lfs-me/installed"
 current_dir=$( pwd )
 run_checks=true
 download_sources=true
@@ -338,6 +363,46 @@ do
             fi
             shift 2
             ;;
+        indexadd)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
+            package_file=$2
+            if ! lfs_me_load_package
+            then
+                lfs_me_error "'$2' is no valid package."
+            fi
+            mode="indexadd"
+            shift 2
+            ;;
+        indexremove)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
+            package_file=$2
+            #load the package file and if it isn't one, do some other stuff
+            if ! lfs_me_load_package
+            then
+                pkgname="$2"
+                pkgver="$3"
+                shift 3
+
+                #pkgver_postfix?
+                case $4 in
+                    -*)
+                        ;;
+                    *)
+                        pkgver_postfix="$1"
+                        shift
+                        ;;
+                esac
+            else
+                shift
+            fi
+            mode="indexremove"
+            ;;
         install)
             if [ "$mode" != "undefined" ]
             then
@@ -387,11 +452,16 @@ do
     esac
 done
 
+#Create all the necessary directories
+index_dir="${install_prefix}/${index_dir}"
+mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir"
+
 #Get absolute paths for directories ( so cd works, even if in some weird directory )
 install_prefix=$(readlink -f "$install_prefix")
 build_dir=$(readlink -f "$build_dir")
 fakeroot_dir=$(readlink -f "$fakeroot_dir")
 sources_dir=$(readlink -f "$sources_dir")
+index_dir=$(readlink -f "$index_dir")
 
 
 
@@ -452,6 +522,14 @@ case "$mode" in
         lfs_me_sources
         ;;
 
+    "indexadd")
+        lfs_me_indexadd
+        ;;
+
+    "indexremove")
+        lfs_me_indexremove
+        ;;
+
     "install")
         #check and load package file
         if ! lfs_me_load_package
@@ -486,6 +564,9 @@ case "$mode" in
         else
             lfs_me_postinstall
         fi
+
+        #add to index
+        lfs_me_indexadd
         ;;
 
     "remove")
@@ -528,6 +609,9 @@ case "$mode" in
         else
             lfs_me_postremove
         fi
+
+        #remove from index
+        lfs_me_indexremove
         ;;
     "check")
         lfs_me_message "Preparing md5sums"
