@@ -1,1 +1,2 @@
 * Using the remove option may destroy the system by deleting files that are also installed by other packages 
+* Using the remove option with an instal_prefix deletes all empty parent directories if the installation prefix is empty
