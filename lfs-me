@@ -29,6 +29,18 @@ color_bblue='\e[1;34m'    #Bold blue
 color_reset='\e[0m'       #Reset color
 
 #functions
+lfs_me_disable_color() {
+    color_red=''
+    color_green=''
+    color_yellow=''
+    color_blue=''
+    color_bred=''
+    color_bgreen=''
+    color_byellow=''
+    color_bblue=''
+    color_reset=''
+}
+
 lfs_me_help() {
     echo -e "${color_blue}LFS-ME ( Linux From Scratch made [more] easy ), a simple fakeroot based package manager for Linux from Scratch.\n"
 
@@ -208,6 +220,7 @@ current_dir="$PWD"
 run_checks=true
 download_sources=true
 verify_checksums=true
+show_color=true
 install_prefix=""
 sources_dir="$current_dir"
 mode="undefined"
@@ -216,6 +229,11 @@ mode="undefined"
 if [ -s ~/.lfs-me ]
 then
     source ~/.lfs-me
+fi
+
+if ! $show_color
+then
+    lfs_me_disable_color
 fi
 
 #create build directory and fakeroot directory
@@ -255,15 +273,7 @@ do
             shift
             ;;
         --no-color)
-            color_red=''
-            color_green=''
-            color_yellow=''
-            color_blue=''
-            color_bred=''
-            color_bgreen=''
-            color_byellow=''
-            color_bblue=''
-            color_reset=''
+            lfs_me_disable_color
             shift
             ;;
         --no-downloads)
