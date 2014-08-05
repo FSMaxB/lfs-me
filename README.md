@@ -84,6 +84,25 @@ Command line usage
 |`-p`     |`--prefix`          |Specify installation prefix                          |
 |`-s`     |`--sources`         |Specify directory where sources are stored           |
 
+Configuration file
+------------------
+You can create the configuration file `~/.lfs-me` to set default values for variables used by *lfs-me*. You can use the following variables:
+* `build_dir`
+* `fakeroot_dir`
+* `install_prefix`
+* `sources_dir`
+* `run_checks`: *true* or *false*
+* `download_sources`: *true* or *false*
+* `verify_checksums`: *true* or *false*
+* `show_color`:	*true* or *false*
+* `debug`: *true* or *false*
+
+Example:
+
+    sources_dir=~/src
+    install_prefix=~/local/
+    show_color=false
+
 Typical scenario
 ----------------
 Here is a typical scenario on how to create, build and install a package with *lfs-me*.
