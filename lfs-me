@@ -496,26 +496,22 @@ case "$mode" in
         lfs_me_message "Deleting"
         if $debug; then lfs_me_pause; fi
 	    cd "$temp_dir"
-        #if install_prefix is set, add it to the beginning of the paths
-        if ! [[ -z "$install_prefix" ]]
-        then
-            mv DIRS{,.old}
-            mv FILES{,.old}
-            mv LINKS{,.old}
-            awk '{print _prefix$0}' _prefix="$install_prefix" DIRS.old > DIRS
-            awk '{print _prefix$0}' _prefix="$install_prefix" FILES.old > FILES
-            awk '{print _prefix$0}' _prefix="$install_prefix" LINKS.old > LINKS
-        fi
-        #TODO: What about filenames with spaces and/or newline characters?
-        rm -f $( cat FILES )
+        #TODO: What about filenames with newline characters?
+        for file in $( cat FILES )
+        do
+            rm -f "${install_prefix}/${file}"
+        done
         #TODO: It might be possible to sort this so that there are only empty directories
-        rmdir -p --ignore-fail-on-non-empty $( cat DIRS )
-        for file in $( cat LINKS )
+        for directory in $( cat DIRS )
+        do
+            rmdir -p --ignore-fail-on-non-empty "${install_prefix}/${directory}"
+        done
+        for link in $( cat LINKS )
         do
             #only remove broken symlinks
-            if ! test -r "$file"
+            if ! test -r "${install_prefix}/${link}"
             then
-                rm -f "$file"
+                rm -f "${install_prefix}/${link}"
             fi
         done
 
