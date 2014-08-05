@@ -187,10 +187,11 @@ lfs_me_load_package() {
     #extract meta files
     if ! tar -xJf "$package_file" -C "$temp_dir" ./md5sums ./FILES ./DIRS ./LINKS ./PKGBUILD
     then
-        lfs_me_error "'$package_file' is no valid package."
+        return 1
     fi
     pkgbuild_file="${temp_dir}/PKGBUILD"
     source "$pkgbuild_file"
+    return 0
 }
 
 #Those functions are allowed to be overwriten in PKGBUILD
@@ -453,7 +454,10 @@ case "$mode" in
 
     "install")
         #check and load package file
-        lfs_me_load_package
+        if ! lfs_me_load_package
+        then
+            lfs_me_error "'$package_file' is no valid package."
+        fi
 
         #extract files
         lfs_me_message "Extracting package"
@@ -487,7 +491,10 @@ case "$mode" in
     "remove")
         lfs_me_message "Extracting meta files"
         #check and load package file
-        lfs_me_load_package
+        if ! lfs_me_load_package
+        then
+            lfs_me_error "'$package_file' is no valid package."
+        fi
 
         #deleting files
         lfs_me_message "Deleting"
@@ -526,7 +533,10 @@ case "$mode" in
         lfs_me_message "Preparing md5sums"
         if $debug; then lfs_me_pause; fi
         #check and load package file
-        lfs_me_load_package
+        if ! lfs_me_load_package
+        then
+            lfs_me_error "'$package_file' is no valid package."
+        fi
 
 	    cd "$temp_dir"
 	    grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
