@@ -182,6 +182,17 @@ lfs_me_package() {
     rm -rf "${build_dir}/*" "${fakeroot_dir}/*"
 }
 
+#extract and load a package file
+lfs_me_load_package() {
+    #extract meta files
+    if ! tar -xJf "$package_file" -C "$temp_dir" ./md5sums ./FILES ./DIRS ./LINKS ./PKGBUILD
+    then
+        lfs_me_error "'$package_file' is no valid package."
+    fi
+    pkgbuild_file="${temp_dir}/PKGBUILD"
+    source "$pkgbuild_file"
+}
+
 #Those functions are allowed to be overwriten in PKGBUILD
 lfs_me_prepare() {
     tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "$build_dir"
@@ -333,11 +344,6 @@ do
             fi
             mode="install"
             package_file="$2"
-            #check if valid tar archive and package file
-            if ! tar -tf "$package_file" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
-            then
-                lfs_me_error "\"${package_file}\" is not a valid package file!"
-            fi
             shift 2
             ;;
         remove)
@@ -347,11 +353,6 @@ do
             fi
             mode="remove"
             package_file="$2"
-            #check if valid tar archive and package file
-            if ! tar -tf "$package_file" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
-            then
-                lfs_me_error "\"${package_file}\" is not a valid package file!"
-            fi
             shift 2
             ;;
         check)
@@ -361,11 +362,6 @@ do
             fi
             mode="check"
             package_file="$2"
-            #check if valid tar archive and package file
-            if ! tar -tf "$package_file" ./PKGBUILD ./FILES ./LINKS ./DIRS ./md5sums &> /dev/null
-            then
-                lfs_me_error "\"${package_file}\" is not a valid package file!"
-            fi
             shift 2
             ;;
         checksums)
@@ -456,6 +452,9 @@ case "$mode" in
         ;;
 
     "install")
+        #check and load package file
+        lfs_me_load_package
+
         #extract files
         lfs_me_message "Extracting package"
         if $debug; then lfs_me_pause; fi
@@ -476,7 +475,6 @@ case "$mode" in
         #postinstall script
 	    lfs_me_message "Running postinstall"
         cd "$temp_dir"
-        source ./PKGBUILD
         if $debug
         then 
             lfs_me_pause
@@ -487,10 +485,9 @@ case "$mode" in
         ;;
 
     "remove")
-        #extract meta files
         lfs_me_message "Extracting meta files"
-        if $debug; then lfs_me_pause; fi
-        tar -xJf "$package_file" -C "$temp_dir" ./FILES ./DIRS ./LINKS ./PKGBUILD
+        #check and load package file
+        lfs_me_load_package
 
         #deleting files
         lfs_me_message "Deleting"
@@ -517,7 +514,6 @@ case "$mode" in
 
         #postremove script
         lfs_me_message "Running postremove"
-        source ./PKGBUILD
         if $debug
         then 
             lfs_me_pause
@@ -527,10 +523,11 @@ case "$mode" in
         fi
         ;;
     "check")
-	    #prepare md5sums
         lfs_me_message "Preparing md5sums"
         if $debug; then lfs_me_pause; fi
-        tar -xJf "$package_file" -C "$temp_dir" ./md5sums
+        #check and load package file
+        lfs_me_load_package
+
 	    cd "$temp_dir"
 	    grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
 	    mv md5sums.grep md5sums
