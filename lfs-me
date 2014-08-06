@@ -263,6 +263,25 @@ lfs_me_load_package_files() {
     return "$shift_value"
 }
 
+#Get a list of every installed files
+lfs_me_get_installed_files() {
+    #if $1 is false, the current package ( pkgname, pkgver ) is not included in the file list
+    list_current_package=$1
+
+    touch "${temp_dir}/ALL_FILES"
+    for package in $( ls "$index_dir" )
+    do
+        for version in $( ls "${index_dir}/${package}" )
+        do
+            if $list_current_package || ( [[ "$package" != "$pkgname" ]] && [[ "$version" != "$pkgver" ]] && [[ "$version" != "${pkgver}-${pkgver_postfix}" ]] )
+            then
+                cat "${index_dir}/${package}/${version}/"{FILES,DIRS,LINKS} >> "${temp_dir}/ALL_FILES"
+            fi
+        done
+    done
+    unset list_current_package
+}
+
 #Those functions are allowed to be overwriten in PKGBUILD
 lfs_me_prepare() {
     tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "$build_dir"
