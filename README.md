@@ -7,9 +7,9 @@ Description
 -----------
 *lfs-me* is a package manager that is completely written in bash. It was created in order to make installing Linux From Scratch easier and provide the author a learning experience about how package management can be done from scratch.
 
-*lfs-me* doesn't support inter package dependencies, nor does it keep track of what files have been installed on the system. You can keep track of what is installed by storing all installed package files in one directory.
+*lfs-me* doesn't support inter package dependencies, but it can keep track of what packages and files have been installed on the system, for more information about the package index see the **Index** section.
 
-Packages are created in the form of a PKGBUILD file ( very similar to those used by Archlinux ). PKGBUILD files are bash scripts that get loaded by the package manager and contain variables and functions that describe how the software is to be downloaded, built, and installed. You can create a package by copying `PKGBUILD.proto`. The exact process is described in the **PKGBUILD** section.
+Packages are created in the form of a PKGBUILD file ( very similar to those used by Archlinux ). PKGBUILD files are bash scripts that get loaded by the package manager and contain variables and functions that describe how the software is to be downloaded, built and installed. You can create a package by copying `PKGBUILD.proto`. The exact process is described in the **PKGBUILD** section.
 
 **WARNING**
 You should be aware that you should not under any circumstances use *lfs-me* in a production environment ( outside a virtual machine or chroot ) if you don't now what you are doing and how it works. This might break your system horribly if you try to install packages in there.
@@ -27,6 +27,20 @@ The packages are simple tarballs with xz compression that contain some extra fil
 * `PKGBUILD`: The PKGBUILD file from which the pacakge has been built. This is needed to run postinstall and postremove functions.
 
 Keep in mind that the install option simply overwrites everything without checking if it already exists. And the remove option simply deletes everything listed in those files. The only check that is done is that symbolic links are deleted only when they don't link to any file/directory anymore.
+
+Index
+-----
+To keep track of what packages and what files are installed on the system, the metadata files (`md5sums`, `PKGBUILD` etc.) get installed into the package index. The package index is a directory structure of the following form:
+
+    $install_prefix/$index_dir
+                          |-->$pkgname
+                                  |-->$pkgver
+                                         |-->md5sums
+                                         |-->PKGBUILD
+                                         |-->DIRS
+                                         |-->FILES
+                                         |-->LINKS
+Where `$...` are the respective values of the variables. If `$pkgver_postfix` is set, the last directory is `$pkgver-$pkgver_postfix`
 
 PKGBUILD
 --------
@@ -62,13 +76,19 @@ Command line usage
 
 #### Modes
 |    mode   |   parameter   |                                    description                                              |
-|:----------|:--------------|---------------------------------------------------------------------------------------------|
-|`build`    |*PKGBUILD-file*|Build the package specified by the PKGBUILD                                                  |
-|`install`  |*package.pkg*  |Install a package to the system                                                              |
-|`remove`   |*package.pkg*  |Remove a package from the system                                                             |
-|`check`    |*package.pkg*  |Check the installed files                                                                    |
-|`checksums`|*PKGBUILD-file*|Create checksums for downloaded source files specified in the *sources* array in the PKGBUILD|
-|`download` |*PKGBUILD-file*|Download the source files specified in the *sources* array in the PKGBUILD                   |
+|:---------------|:-------------------------------------|---------------------------------------------------------------------------------------------|
+|`build`         |*PKGBUILD-file*                       |Build the package specified by the PKGBUILD                                                  |
+|`install`       |*package.pkg*                         |Install a package to the system                                                              |
+|`remove`        |*package.pkg*                         |Remove a package from the system and index.                                                  |
+|`remove`        |*pkgname* *pkgver* *[pkgver_postfix]* |Remove a package from the system and index.                                                  |
+|`indexadd`      |*package.pkg*                         |Add a package to the package index without installing it.                                    |
+|`indexremove`   |*package.pkg*                         |Remove a package from the index without removing from the system.                            |
+|`indexremove`   |*pkgname* *pkgver* *[pkgver_postfix]* |Remove a package from the index without removing it from the system                          |
+|`indexlist`     |                                      |List all packages in the package index.                                                      |
+|`check`         |*package.pkg*                         |Check the installed files                                                                    |
+|`check`         |*pkgname* *pkgver* *[pkgver_postfix]* |Check the installed files                                                                    |
+|`checksums`     |*PKGBUILD-file*                       |Create checksums for downloaded source files specified in the *sources* array in the PKGBUILD|
+|`download`      |*PKGBUILD-file*                       |Download the source files specified in the *sources* array in the PKGBUILD                   |
 
 #### Options
 |  short  |        long        |                    description                      |
@@ -77,6 +97,7 @@ Command line usage
 |`-D`     |`--debug`           |Enable debug mode                                    |
 |`-f`     |`--fakeroot-dir`    |Specify fakeroot directory (see predefined variables)|
 |`-h`     |`--help`            |Show help output                                     |
+|`-i`     |`--index-dir`       |Specify index directory                              |
 |         |`--no-checks`       |Don't run tests                                      |
 |         |`--no-color`        |Disable color                                        |
 |         |`--no-downloads`    |Don't download sources                               |
@@ -91,6 +112,7 @@ You can create the configuration file `~/.lfs-me` to set default values for vari
 * `fakeroot_dir`
 * `install_prefix`
 * `sources_dir`
+* `index_dir`
 * `run_checks`: *true* or *false*
 * `download_sources`: *true* or *false*
 * `verify_checksums`: *true* or *false*
@@ -101,7 +123,10 @@ Example:
 
     sources_dir=~/src
     install_prefix=~/local/
+    index_dir=/var/lfs-me/index
     show_color=false
+
+In this case, the index is stored in `~/local/var/lfs-me/index`
 
 Typical scenario
 ----------------
@@ -113,4 +138,4 @@ Here is a typical scenario on how to create, build and install a package with *l
 4. Edit the *PKGBUILD* to include the checksums.
 5. Build the package: `lfs-me build foo-0.1.1 -s ~/downloads`
 6. Install the package into `/mnt/lfs` for example ( you can omit the prefix to install to `/`): `sudo lfs-me install foo-0.1.1.pkg -p /mnt/lfs`
-7. Check the installed files: `lfs-me check foo-0.1.1.pkg -p /mnt/lfs`
+7. Check the installed files: `lfs-me check foo 0.1.1 -p /mnt/lfs`
