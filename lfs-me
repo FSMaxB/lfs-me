@@ -417,7 +417,7 @@ unset i
 
 #Create all the necessary directories
 index_dir="${install_prefix}/${index_dir}"
-mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir"
+mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir" 2> /dev/null
 
 #Get absolute paths for directories ( so cd works, even if in some weird directory )
 install_prefix=$(readlink -f "$install_prefix")
