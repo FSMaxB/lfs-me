@@ -273,16 +273,13 @@ then
     lfs_me_disable_color
 fi
 
-#create build directory and fakeroot directory
-mkdir -p "$build_dir" "$fakeroot_dir"
-
-#Parse Arguments
-while :
+#Parse all options
+for (( i=1; i<=$#; i++ ))
 do
-    case "$1" in
+    case "${!i}" in
         -b | --build-dir)
-            build_dir="$2"
-            shift 2
+            i=$(($i + 1))
+            build_dir="${!i}"
             if [ ! -d "$build_dir" ]
             then
                 lfs_me_error "Build directory \"${build_dir}\" not found!"
@@ -290,11 +287,10 @@ do
             ;;
         -D | --debug)
             debug=true
-            shift
             ;;
         -f | --fakeroot-dir)
-            fakeroot_dir="$2"
-            shift 2
+            i=$(($i + 1))
+            fakeroot_dir="${!i}"
             if [ ! -d "$fakeroot_dir" ]
             then
                 lfs_me_error "Fakeroot directory \"${build_dir}\" not found!"
@@ -307,36 +303,54 @@ do
             ;;
         --no-checks)
             run_checks=false
-            shift
             ;;
         --no-color)
             lfs_me_disable_color
-            shift
             ;;
         --no-downloads)
             download_sources=false
-            shift
             ;;
         --ignore-checksums)
             verify_checksums=false
-            shift
             ;;
         -p | --prefix)
-            install_prefix="$2"
-            shift 2
+            i=$(($i + 1))
+            install_prefix="${!i}"
             if [ ! -d "$install_prefix" ]
             then
                 lfs_me_error "Install prefix \"${install_prefix}\" not found!"
             fi
             ;;
         -s | --sources)
-            sources_dir="$2"
+            i=$(($i + 1))
+            sources_dir="${!i}"
             if [ ! -d "$sources_dir" ]
             then
                 lfs_me_error "Sources dir \"${sources_dir}\" not found!"
             fi
-            shift 2
             ;;
+        -*)
+            lfs_me_error "Unknown option \"${!i}\""
+            ;;
+    esac
+done
+unset i
+
+#Create all the necessary directories
+index_dir="${install_prefix}/${index_dir}"
+mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir"
+
+#Get absolute paths for directories ( so cd works, even if in some weird directory )
+install_prefix=$(readlink -f "$install_prefix")
+build_dir=$(readlink -f "$build_dir")
+fakeroot_dir=$(readlink -f "$fakeroot_dir")
+sources_dir=$(readlink -f "$sources_dir")
+index_dir=$(readlink -f "$index_dir")
+
+#Parse Arguments
+while :
+do
+    case "$1" in
         build)
             if [ "$mode" != "undefined" ]
             then
@@ -447,27 +461,11 @@ do
             fi
             shift 2
             ;;
-        -*)
-            lfs_me_error "Unknown option \"$1\""
-            ;;
         *)
             break
             ;;
     esac
 done
-
-#Create all the necessary directories
-index_dir="${install_prefix}/${index_dir}"
-mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir"
-
-#Get absolute paths for directories ( so cd works, even if in some weird directory )
-install_prefix=$(readlink -f "$install_prefix")
-build_dir=$(readlink -f "$build_dir")
-fakeroot_dir=$(readlink -f "$fakeroot_dir")
-sources_dir=$(readlink -f "$sources_dir")
-index_dir=$(readlink -f "$index_dir")
-
-
 
 case "$mode" in
     "build")
