@@ -42,6 +42,8 @@ To keep track of what packages and what files are installed on the system, the m
                                          |-->LINKS
 Where `$...` are the respective values of the variables. If `$pkgver_postfix` is set, the last directory is `$pkgver-$pkgver_postfix`
 
+By default the index is stored in `/var/lfs-me/index`
+
 PKGBUILD
 --------
 Create a new package by copying and modifying `PKGBUILD.proto`. The *PKGBUILD* is loaded by *lfs-me* and then the different functions are executed.
