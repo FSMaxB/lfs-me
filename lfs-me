@@ -198,14 +198,18 @@ lfs_me_indexadd() {
 lfs_me_indexremove() {
     lfs_me_message "Removing from package index"
     if $debug; then lfs_me_pause; fi
+    #Get name of directory
     if [[ -z "$pkgver_postfix" ]]
     then
         index_entry="${index_dir}/${pkgname}/${pkgver}"
     else
         index_entry="${index_dir}/${pkgname}/${pkgver}-${pkgver_postfix}"
     fi
+
+    #Remove files/dirs from index
     rm "$index_entry"/{PKGBUILD,md5sums,FILES,DIRS,LINKS}
-    rmdir -p --ignore-fail-on-non-empty "$index_entry"
+    rmdir "$index_entry"
+    rmdir --ignore-fail-on-non-empty "${index_dir}/${pkgname}"
 }
 
 #extract and load a package file, returns the number of arguments to shift
@@ -609,10 +613,9 @@ case "$mode" in
         do
             rm -f "${install_prefix}/${file}"
         done
-        #TODO: It might be possible to sort this so that there are only empty directories
-        for directory in $( cat DIRS )
+        for directory in $( sort -r DIRS )  #Sort in order to remove subdirs first
         do
-            rmdir -p --ignore-fail-on-non-empty "${install_prefix}/${directory}"
+            rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
         done
         for link in $( cat LINKS )
         do
