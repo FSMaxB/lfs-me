@@ -14,8 +14,6 @@ Packages are created in the form of a PKGBUILD file ( very similar to those used
 **WARNING**
 You should be aware that you should not under any circumstances use *lfs-me* in a production environment ( outside a virtual machine or chroot ) if you don't now what you are doing and how it works. This might break your system horribly if you try to install packages in there.
 
-It isn't recommended to uninstall packages with the builtin *remove* option without checking beforehand if some needed files might get deleted. Otherwise you could brick your system by removing files that have also been installed by other packages and are needed by them.
-
 Package Format
 --------------
 The packages are simple tarballs with xz compression that contain some extra files with meta information:
@@ -25,8 +23,6 @@ The packages are simple tarballs with xz compression that contain some extra fil
 * `FILES`: A list of every installed File.
 * `LINKS`: A list of every installed symbolic link.
 * `PKGBUILD`: The PKGBUILD file from which the pacakge has been built. This is needed to run postinstall and postremove functions.
-
-Keep in mind that the install option simply overwrites everything without checking if it already exists. And the remove option simply deletes everything listed in those files. The only check that is done is that symbolic links are deleted only when they don't link to any file/directory anymore.
 
 Index
 -----
@@ -41,8 +37,6 @@ To keep track of what packages and what files are installed on the system, the m
                                          |-->FILES
                                          |-->LINKS
 Where `$...` are the respective values of the variables. If `$pkgver_postfix` is set, the last directory is `$pkgver-$pkgver_postfix`
-
-By default the index is stored in `/var/lfs-me/index`
 
 PKGBUILD
 --------

@@ -642,6 +642,10 @@ case "$mode" in
         ;;
 
     "remove")
+        lfs_me_message "Getting list of installed files"
+        if $debug; then lfs_me_pause; fi
+        lfs_me_get_installed_files false    #false: don't include files from the current package
+
         #deleting files
         lfs_me_message "Deleting"
         if $debug; then lfs_me_pause; fi
@@ -649,11 +653,21 @@ case "$mode" in
         #TODO: What about filenames with newline characters?
         for file in $( cat FILES )
         do
-            rm -f "${install_prefix}/${file}"
+            if ! grep -q "^${file}$" "${temp_dir}/ALL_FILES"
+            then
+                rm -f "${install_prefix}/${file}"
+            else
+                echo "Didn't remove file '${install_prefix}/${file}', still needed."
+            fi
         done
         for directory in $( sort -r DIRS )  #Sort in order to remove subdirs first
         do
-            rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
+            if ! grep -q "^${directory}$" "${temp_dir}/ALL_FILES"
+            then
+                rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
+            else
+                echo "Didn't remove directory '${install_prefix}/${directory}', still needed."
+            fi
         done
         for link in $( cat LINKS )
         do
@@ -661,6 +675,8 @@ case "$mode" in
             if ! test -r "${install_prefix}/${link}"
             then
                 rm -f "${install_prefix}/${link}"
+            else
+                echo "Didn't remove link '${install_prefix}/${link}', still needed."
             fi
         done
 
