@@ -403,6 +403,10 @@ do
             fi
             mode="indexremove"
             ;;
+        indexlist)
+            mode="indexlist"
+            shift
+            ;;
         install)
             if [ "$mode" != "undefined" ]
             then
@@ -528,6 +532,16 @@ case "$mode" in
 
     "indexremove")
         lfs_me_indexremove
+        ;;
+
+    "indexlist")
+        for package in $( ls "$index_dir" )
+        do
+            for version in $( ls "${index_dir}/${package}" )
+            do
+                echo -e "${package}\t${version}"
+            done
+        done
         ;;
 
     "install")
