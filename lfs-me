@@ -338,7 +338,7 @@ do
             fakeroot_dir="${!i}"
             if [ ! -d "$fakeroot_dir" ]
             then
-                lfs_me_error "Fakeroot directory \"${build_dir}\" not found!"
+                lfs_me_error "Fakeroot directory \"${fakeroot_dir}\" not found!"
             fi
             ;;
         -h | --help)
