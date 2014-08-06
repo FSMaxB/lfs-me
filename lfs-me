@@ -449,6 +449,10 @@ do
             mode="indexremove"
             ;;
         indexlist)
+            if [ "$mode" != "undefined" ]
+            then
+                lfs_me_error "Only one action can be performed!"
+            fi
             mode="indexlist"
             shift
             ;;
