@@ -479,6 +479,16 @@ do
             then
                 lfs_me_error "Only one action can be performed!"
             fi
+            indexlist_search=""
+            case $2 in
+                -*)
+                    ;;
+                *)
+                    indexlist_search="$2"
+                    shift
+                    ;;
+            esac
+
             mode="indexlist"
             shift
             ;;
@@ -598,7 +608,7 @@ case "$mode" in
         do
             for version in $( ls "${index_dir}/${package}" )
             do
-                echo -e "${package}\t${version}"
+                echo -e "${package}\t${version}" | grep -i "$indexlist_search"
             done
         done
         ;;
