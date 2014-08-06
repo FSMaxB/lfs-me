@@ -346,6 +346,14 @@ do
             lfs_me_cleanup
             exit 0
             ;;
+        -i | --index-dir)
+            i=$(($i + 1))
+            index_dir="${!i}"
+            if [ ! -d "$index_dir" ]
+            then
+                lfs_me_error "Package index \"${index_dir}\" not found!"
+            fi
+            ;;
         --no-checks)
             run_checks=false
             ;;
