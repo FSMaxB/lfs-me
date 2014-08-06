@@ -167,8 +167,8 @@ lfs_me_cleanup() {
 lfs_me_package() {
     #create metadata
     cd "$fakeroot_dir"
+    find . -type f | grep -ve '^\./FILES$' > "${fakeroot_dir}/FILES"
     find . -type l > "${fakeroot_dir}/LINKS"
-    find . -type f > "${fakeroot_dir}/FILES"
     find . -type d > "${fakeroot_dir}/DIRS"
     find . -type f -exec md5sum {} \; | grep -ve "\\./md5sums$" > "${fakeroot_dir}/md5sums"
     #remove "." from the beginning of pathnames
