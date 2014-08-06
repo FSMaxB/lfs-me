@@ -280,7 +280,7 @@ lfs_me_get_installed_files() {
     do
         for version in $( ls "${index_dir}/${package}" )
         do
-            if $list_current_package || ( [[ "$package" != "$pkgname" ]] && [[ "$version" != "$pkgver" ]] && [[ "$version" != "${pkgver}-${pkgver_postfix}" ]] )
+            if $list_current_package || [[ "$package" != "$pkgname" ]] || ( [[ "$version" != "$pkgver" ]] && [[ "$version" != "${pkgver}-${pkgver_postfix}" ]] )
             then
                 cat "${index_dir}/${package}/${version}/"{FILES,DIRS,LINKS} >> "${temp_dir}/ALL_FILES"
             fi
