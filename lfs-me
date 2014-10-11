@@ -51,13 +51,15 @@ lfs_me_help() {
     echo -e "${color_bblue} install      ${color_blue}package.pkg              Install a package to system and index"
     echo -e "${color_bblue} remove       ${color_blue}package.pkg              Remove a package from system and index"
     echo -e "${color_bblue} remove       ${color_blue}pkgname pkgver           Remove a package from system and index"
+    echo -e "${color_bblue} remove       ${color_blue}pkgname                  Remove a package from system and index"
     echo -e "${color_bblue} indexadd     ${color_blue}package.pkg              Add a package to the index"
     echo -e "${color_bblue} indexremove  ${color_blue}package.pkg              Remove a package from the index"
     echo -e "${color_bblue} indexremove  ${color_blue}pkgname pkgver           Remove a package from the index"
+    echo -e "${color_bblue} indexremove  ${color_blue}pkgname                  Remove a package from the index"
     echo -e "${color_bblue} indexlist    ${color_blue}                         List all packages in the index"
     echo -e "${color_bblue} check        ${color_blue}package.pkg              Verify checksums of files installed by package"
     echo -e "${color_bblue} check        ${color_blue}pkgname pkgver           Verify checksums of files installed by package"
-    echo -e "${color_bblue} check        ${color_blue}pkgname-pkgver           Verify checksums of files installed by package"
+    echo -e "${color_bblue} check        ${color_blue}pkgname                  Verify checksums of files installed by package"
     echo -e "${color_bblue} checksums    ${color_blue}PKGBUILD-file            Create SHA1 sums for all source files"
     echo -e "${color_bblue} download     ${color_blue}PKGBUILD-file            Download source files\n"
 
@@ -208,12 +210,14 @@ lfs_me_indexremove() {
 #extract and load a package file, returns the number of arguments to shift
 #for some reason shift suddenly stopped working if not done like that
 lfs_me_load_package_files() {
+	command_name="$1"
     if [[ -z $2 ]]
     then
-        lfs_me_error "No arguments for '$1'"
+        lfs_me_error "Please specify a package for '${command_name}'"
     fi
+
     #extract meta files
-    if tar -xJf "$2" -C "$temp_dir" ./sha1sums ./FILES ./DIRS ./LINKS ./PKGBUILD
+    if tar -xJf "$2" -C "$temp_dir" ./sha1sums ./FILES ./DIRS ./LINKS ./PKGBUILD 2> /dev/null
     then
         package_file=$2
         shift_value=1
@@ -222,12 +226,25 @@ lfs_me_load_package_files() {
         pkgver="$3"
         shift_value=3
 
-        if [[ -z "$pkgname" ]] || [[ -z "$pkgver" ]]
-        then
-            lfs_me_error "No pkgname and pkgver specified!"
-        fi
-
-        index_entry="${index_dir}/${pkgname}/${pkgver}"
+		if [[ -z $pkgver ]]
+		then
+			case "$(find "${index_dir}/${pkgname}" -type d | wc -l)" in
+				0)
+					lfs_me_error "Can't find package '${pkgname}'"
+					;;
+				1)
+					lfs_me_error "Can't find package '${pkgname}'"
+					;;
+				2)
+					index_entry="$(find "${index_dir}/${pkgname}" -type d)"
+					;;
+				*)
+					lfs_me_error "Package '${pkgname}' is ambiguos"
+					;;
+			esac
+		else
+			index_entry="${index_dir}/${pkgname}/${pkgver}"
+		fi
 
         if ! [ -d "$index_entry" ]
         then

@@ -76,12 +76,15 @@ Command line usage
 |`install`       |*package.pkg*                         |Install a package to the system                                                              |
 |`remove`        |*package.pkg*                         |Remove a package from the system and index.                                                  |
 |`remove`        |*pkgname* *pkgver*            |Remove a package from the system and index.                                                  |
+|`remove`        |*pkgname*                     |Remove a package from the system and index.                                                  |
 |`indexadd`      |*package.pkg*                         |Add a package to the package index without installing it.                                    |
 |`indexremove`   |*package.pkg*                         |Remove a package from the index without removing from the system.                            |
 |`indexremove`   |*pkgname* *pkgver*            |Remove a package from the index without removing it from the system                          |
+|`indexremove`   |*pkgname*                     |Remove a package from the index without removing it from the system                          |
 |`indexlist`     |                                      |List all packages in the package index.                                                      |
 |`check`         |*package.pkg*                         |Check the installed files                                                                    |
 |`check`         |*pkgname* *pkgver*            |Check the installed files                                                                    |
+|`check`         |*pkgname*                     |Check the installed files                                                                    |
 |`checksums`     |*PKGBUILD-file*                       |Create checksums for downloaded source files specified in the *sources* array in the PKGBUILD|
 |`download`      |*PKGBUILD-file*                       |Download the source files specified in the *sources* array in the PKGBUILD                   |
 
