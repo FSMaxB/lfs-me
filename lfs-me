@@ -257,23 +257,37 @@ lfs_me_load_package_files() {
     return "$shift_value"
 }
 
-#Get a list of every installed files
-lfs_me_get_installed_files() {
-    #if $1 is false, the current package ( pkgname, pkgver ) is not included in the file list
-    list_current_package=$1
+#Get a list of every installed package
+lfs_me_get_installed_packages() {
+	[ -f "${temp_dir}/ALL_PACKAGES" ] && rm "${temp_dir}/ALL_PACKAGES"
+	touch "${temp_dir}/ALL_PACKAGES"
 
-    touch "${temp_dir}/ALL_FILES"
-    for package in $( ls "$index_dir" )
-    do
-        for version in $( ls "${index_dir}/${package}" )
-        do
-            if $list_current_package || [[ "$package" != "$pkgname" ]] || [[ "$version" != "$pkgver" ]]
-            then
-                cat "${index_dir}/${package}/${version}/"{FILES,DIRS,LINKS} >> "${temp_dir}/ALL_FILES"
-            fi
-        done
-    done
-    unset list_current_package
+	for package in $( ls "${index_dir}")
+	do
+		for version in $( ls "${index_dir}/${package}")
+		do
+			echo -e "${package}/${version}" >> "${temp_dir}/ALL_PACKAGES"
+		done
+	done
+}
+
+#Get a list of every installed file
+lfs_me_get_installed_files() {
+	#if $1 is false, the current package ( pkgname, pkgver ) is not included in the file list
+	list_current_package=$1
+
+	[ -f "${temp_dir}/ALL_FILES" ] && rm "${temp_dir}/ALL_FILES"
+	touch "${temp_dir}/ALL_FILES"
+
+	lfs_me_get_installed_packages
+	for package in $( cat "${temp_dir}/ALL_PACKAGES" )
+	do
+		if $list_current_package || [ "${pkgname}/${pkgver}" != "$package" ]
+		then
+			cat "${index_dir}/${package}/"{FILES,DIRS,LINKS} >> "${temp_dir}/ALL_FILES"
+		fi
+	done
+	unset list_current_package
 }
 
 #Those functions are allowed to be overwriten in PKGBUILD
@@ -591,13 +605,8 @@ case "$mode" in
         ;;
 
     "indexlist")
-        for package in $( ls "$index_dir" )
-        do
-            for version in $( ls "${index_dir}/${package}" )
-            do
-                echo -e "${package}\t${version}" | grep -i "$indexlist_search"
-            done
-        done
+		lfs_me_get_installed_packages
+		cat "${temp_dir}/ALL_PACKAGES" | grep -i "$indexlist_search"
         ;;
 
     "install")
