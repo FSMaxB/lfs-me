@@ -1,11 +1,18 @@
 Changelog
 =========
 
+v1.0.1
+------
+* search function for `indexlist`
+* changed license to GPLv3 **without** any later versions
+* fixes
+**This is the last version before breaking the index, package and PKGBUILD format, so use this for older systems and PKGBUILDS!**
+
 v1.0.0
 ------
 * **Introduced package index**
 * **Remove option checks if a file is still needed before deleting it**
-* Index support for "remove" and "check"
+* Index support for `remove` and `check`
 * File removal is much cleaner
 * Various fixes
 
