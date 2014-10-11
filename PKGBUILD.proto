@@ -1,7 +1,6 @@
 #!/bin/bash
 pkgname=packagename
 pkgver=1.1.1
-pkgver_postfix=premium-edition
 
 sources=( "http://www.somedomain.com/${pkgname}-${pkgver}.tar.bz2"  #URL
           "install.txt" )   # local file

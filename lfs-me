@@ -50,13 +50,13 @@ lfs_me_help() {
     echo -e "${color_bblue} build        ${color_blue}PKGBUILD-file                     Build the package specified by PKGBUILD-file"
     echo -e "${color_bblue} install      ${color_blue}package.pkg                       Install a package to system and index"
     echo -e "${color_bblue} remove       ${color_blue}package.pkg                       Remove a package from system and index"
-    echo -e "${color_bblue} remove       ${color_blue}pkgname pkgver [pkgver_postfix]   Remove a package from system and index"
+    echo -e "${color_bblue} remove       ${color_blue}pkgname pkgver					Remove a package from system and index"
     echo -e "${color_bblue} indexadd     ${color_blue}package.pkg                       Add a package to the index"
     echo -e "${color_bblue} indexremove  ${color_blue}package.pkg                       Remove a package from the index"
-    echo -e "${color_bblue} indexremove  ${color_blue}pkgname pkgver [pkgver_postfix]   Remove a package from the index"
+    echo -e "${color_bblue} indexremove  ${color_blue}pkgname pkgver					Remove a package from the index"
     echo -e "${color_bblue} indexlist    ${color_blue}                                  List all packages in the index"
     echo -e "${color_bblue} check        ${color_blue}package.pkg                       Verify checksums of files installed by package"
-    echo -e "${color_bblue} check        ${color_blue}pkgname pkgver [pkgver_postfix]   Verify checksums of files installed by package"
+    echo -e "${color_bblue} check        ${color_blue}pkgname pkgver					Verify checksums of files installed by package"
     echo -e "${color_bblue} checksums    ${color_blue}PKGBUILD-file                     Create SHA1 sums for all source files"
     echo -e "${color_bblue} download     ${color_blue}PKGBUILD-file                     Download source files\n"
 
@@ -178,25 +178,16 @@ lfs_me_package() {
     #create package
     cd "$current_dir"
     cp "${temp_dir}/PKGBUILD" "${fakeroot_dir}/"
-    if [[ ! -z ${pkgver_postfix} ]]; then
-        fakeroot tar -cJf "${pkgname}-${pkgver}-${pkgver_postfix}.pkg" -C "$fakeroot_dir" .
-    else
-        fakeroot tar -cJf "${pkgname}-${pkgver}.pkg" -C "$fakeroot_dir" .
-    fi
+    fakeroot tar -cJf "${pkgname}-${pkgver}.pkg" -C "$fakeroot_dir" .
 
     #clean build directories
-    rm -rf "${build_dir}/*" "${fakeroot_dir}/*"
+    [ "$build_dir" ] && [ "$fakeroot_dir" ] && rm -rf "${build_dir}/*" "${fakeroot_dir}/*"
 }
 
 lfs_me_indexadd() {
     lfs_me_message "Adding to package index"
     if $debug; then lfs_me_pause; fi
-    if [[ -z "$pkgver_postfix" ]]
-    then
-        index_entry="${index_dir}/${pkgname}/${pkgver}"
-    else
-        index_entry="${index_dir}/${pkgname}/${pkgver}-${pkgver_postfix}"
-    fi
+    index_entry="${index_dir}/${pkgname}/${pkgver}"
     mkdir -p "$index_entry"
     cp "$temp_dir"/{PKGBUILD,sha1sums,FILES,DIRS,LINKS} "$index_entry"
 }
@@ -204,13 +195,8 @@ lfs_me_indexadd() {
 lfs_me_indexremove() {
     lfs_me_message "Removing from package index"
     if $debug; then lfs_me_pause; fi
-    #Get name of directory
-    if [[ -z "$pkgver_postfix" ]]
-    then
-        index_entry="${index_dir}/${pkgname}/${pkgver}"
-    else
-        index_entry="${index_dir}/${pkgname}/${pkgver}-${pkgver_postfix}"
-    fi
+    #get name of directory
+    index_entry="${index_dir}/${pkgname}/${pkgver}"
 
     #Remove files/dirs from index
     rm "$index_entry"/{PKGBUILD,sha1sums,FILES,DIRS,LINKS}
@@ -240,22 +226,7 @@ lfs_me_load_package_files() {
             lfs_me_error "No pkgname and pkgver specified!"
         fi
 
-        #pkgver_postfix?
-        case $4 in
-            -*)
-                ;;
-            ?*)
-                pkgver_postfix="$4"
-                shift_value=4
-                ;;
-        esac
-
-        if [[ -z "$pkgver_postfix" ]]
-        then
-            index_entry="${index_dir}/${pkgname}/${pkgver}"
-        else
-            index_entry="${index_dir}/${pkgname}/${pkgver}-${pkgver_postfix}"
-        fi
+        index_entry="${index_dir}/${pkgname}/${pkgver}"
 
         if ! [ -d "$index_entry" ]
         then
@@ -279,7 +250,7 @@ lfs_me_get_installed_files() {
     do
         for version in $( ls "${index_dir}/${package}" )
         do
-            if $list_current_package || [[ "$package" != "$pkgname" ]] || ( [[ "$version" != "$pkgver" ]] && [[ "$version" != "${pkgver}-${pkgver_postfix}" ]] )
+            if $list_current_package || [[ "$package" != "$pkgname" ]] || [[ "$version" != "$pkgver" ]]
             then
                 cat "${index_dir}/${package}/${version}/"{FILES,DIRS,LINKS} >> "${temp_dir}/ALL_FILES"
             fi
