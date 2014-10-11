@@ -224,26 +224,25 @@ lfs_me_load_package_files() {
     else
         pkgname="$2"
         pkgver="$3"
-        shift_value=3
 
-		if [[ -z $pkgver ]]
+		if [ -z $pkgver ] || [ "${pkgver:0:1}" == "-" ]
 		then
-			case "$(find "${index_dir}/${pkgname}" -type d | wc -l)" in
+			case "$(find "${index_dir}/${pkgname}" -type d | grep -v -E "^${index_dir}/${pkgname}\$" | wc -l)" in
 				0)
 					lfs_me_error "Can't find package '${pkgname}'"
 					;;
 				1)
-					lfs_me_error "Can't find package '${pkgname}'"
-					;;
-				2)
-					index_entry="$(find "${index_dir}/${pkgname}" -type d)"
+					index_entry="$(find "${index_dir}/${pkgname}" -type d | grep -v -E "^${index_dir}/${pkgname}\$")"
+					pkgver=$(basename "${index_entry}")
 					;;
 				*)
 					lfs_me_error "Package '${pkgname}' is ambiguos"
 					;;
 			esac
+			shift_value=1
 		else
 			index_entry="${index_dir}/${pkgname}/${pkgver}"
+			shift_value=2
 		fi
 
         if ! [ -d "$index_entry" ]
