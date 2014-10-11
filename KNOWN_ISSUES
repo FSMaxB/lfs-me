@@ -1,1 +1,2 @@
 * "lfs-me -h --no-color" is displayed with color enabled
+* order of flags matters too much
