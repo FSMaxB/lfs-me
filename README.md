@@ -36,7 +36,7 @@ To keep track of what packages and what files are installed on the system, the m
                                          |-->DIRS
                                          |-->FILES
                                          |-->LINKS
-Where `$...` are the respective values of the variables. If `$pkgver_postfix` is set, the last directory is `$pkgver-$pkgver_postfix`
+Where `$...` are the respective values of the variables.
 
 PKGBUILD
 --------
@@ -45,7 +45,6 @@ Create a new package by copying and modifying `PKGBUILD.proto`. The *PKGBUILD* i
 #### Variables:
 * `pkgname`: The name of the package.
 * `pkgver`: The version string for the package.
-* `pkgver_postfix`: A postfix string that is added after the version string. This **mustn't** start with `-`!
 * `sources`: An array containing the download URLs of the source files.
 * `sha1sums`: An array containing the SHA1 checksums of the sources files in order to check the integrity.
 
@@ -76,13 +75,13 @@ Command line usage
 |`build`         |*PKGBUILD-file*                       |Build the package specified by the PKGBUILD                                                  |
 |`install`       |*package.pkg*                         |Install a package to the system                                                              |
 |`remove`        |*package.pkg*                         |Remove a package from the system and index.                                                  |
-|`remove`        |*pkgname* *pkgver* *[pkgver_postfix]* |Remove a package from the system and index.                                                  |
+|`remove`        |*pkgname* *pkgver*            |Remove a package from the system and index.                                                  |
 |`indexadd`      |*package.pkg*                         |Add a package to the package index without installing it.                                    |
 |`indexremove`   |*package.pkg*                         |Remove a package from the index without removing from the system.                            |
-|`indexremove`   |*pkgname* *pkgver* *[pkgver_postfix]* |Remove a package from the index without removing it from the system                          |
+|`indexremove`   |*pkgname* *pkgver*            |Remove a package from the index without removing it from the system                          |
 |`indexlist`     |                                      |List all packages in the package index.                                                      |
 |`check`         |*package.pkg*                         |Check the installed files                                                                    |
-|`check`         |*pkgname* *pkgver* *[pkgver_postfix]* |Check the installed files                                                                    |
+|`check`         |*pkgname* *pkgver*            |Check the installed files                                                                    |
 |`checksums`     |*PKGBUILD-file*                       |Create checksums for downloaded source files specified in the *sources* array in the PKGBUILD|
 |`download`      |*PKGBUILD-file*                       |Download the source files specified in the *sources* array in the PKGBUILD                   |
 
