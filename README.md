@@ -18,7 +18,7 @@ Package Format
 --------------
 The packages are simple tarballs with xz compression that contain some extra files with meta information:
 
-* `md5sums`: A list of all the files and their MD5 checksums in order to check the integrity of installed files.
+* `sha1sums`: A list of all the files and their SHA1 checksums in order to check the integrity of installed files.
 * `DIRS`: A list of every installed directory.
 * `FILES`: A list of every installed File.
 * `LINKS`: A list of every installed symbolic link.
@@ -26,12 +26,12 @@ The packages are simple tarballs with xz compression that contain some extra fil
 
 Index
 -----
-To keep track of what packages and what files are installed on the system, the metadata files (`md5sums`, `PKGBUILD` etc.) get installed into the package index. The package index is a directory structure of the following form:
+To keep track of what packages and what files are installed on the system, the metadata files (`sha1sums`, `PKGBUILD` etc.) get installed into the package index. The package index is a directory structure of the following form:
 
     $install_prefix/$index_dir
                           |-->$pkgname
                                   |-->$pkgver
-                                         |-->md5sums
+                                         |-->sha1sums
                                          |-->PKGBUILD
                                          |-->DIRS
                                          |-->FILES

@@ -94,7 +94,7 @@ lfs_me_sources() {
                             lfs_me_error "Download of '$file' failed!"
                         fi
                     else
-                        lfs_me_error "The Source file '${sources_dir}/$file' doesn't exist!"
+                        lfs_me_error "The source file '${sources_dir}/$file' doesn't exist!"
                     fi
                 fi
             done
@@ -117,12 +117,13 @@ lfs_me_sources() {
             #Now actually verify the checksums
             for i in `seq 0 $(($sources_size - 1))`
             do
-                IFS=' ' read -a sum <<< $(sha1sum "${sources_dir}/$(basename ${sources[$i]})")
-                if [[ ${sum[0]} == "${sha1sums[$i]}" ]]
+				filename=$(basename "${sources[$i]}")
+                sum=$(sha1sum "${sources_dir}/${filename}" | grep -o -E '^[0-9a-f]{40}')
+                if [[ $sum == "${sha1sums[$i]}" ]]
                 then
-                    echo "$(basename "${sources[$i]}") OK"
+                    echo "${filename} OK"
                 else
-                    lfs_me_error "The SHA1 sum for '$(basename ${sources[$i]})' doesn't match."
+                    lfs_me_error "The SHA1 sum for '${filename}' doesn't match."
                 fi
             done
         else
@@ -136,8 +137,7 @@ lfs_me_checksums() {
     echo "sha1sums=("
     for file in ${sources[@]}
     do
-        IFS=' ' read -a checksum <<< "$(sha1sum "${sources_dir}/$(basename $file)")"
-        echo "'${checksum[0]}'"
+		sha1sum "${sources_dir}/$(basename $file)" | grep -o -E '^[0-9a-f]{40}'
     done
     echo ")"
 }
@@ -169,7 +169,7 @@ lfs_me_package() {
     find . -type f | grep -ve '^\./FILES$' > "${fakeroot_dir}/FILES"
     find . -type l > "${fakeroot_dir}/LINKS"
     find . -type d > "${fakeroot_dir}/DIRS"
-    find . -type f -exec md5sum {} \; | grep -ve "\\./md5sums$" > "${fakeroot_dir}/md5sums"
+    find . -type f -exec sha1sum {} \; | grep -ve "\\./sha1sums$" > "${fakeroot_dir}/sha1sums"
     #remove "." from the beginning of pathnames
     sed -i -e "s/^\\.//" "${fakeroot_dir}/FILES"
     sed -i -e "s/^\\.//" "${fakeroot_dir}/DIRS"
@@ -198,7 +198,7 @@ lfs_me_indexadd() {
         index_entry="${index_dir}/${pkgname}/${pkgver}-${pkgver_postfix}"
     fi
     mkdir -p "$index_entry"
-    cp "$temp_dir"/{PKGBUILD,md5sums,FILES,DIRS,LINKS} "$index_entry"
+    cp "$temp_dir"/{PKGBUILD,sha1sums,FILES,DIRS,LINKS} "$index_entry"
 }
 
 lfs_me_indexremove() {
@@ -213,7 +213,7 @@ lfs_me_indexremove() {
     fi
 
     #Remove files/dirs from index
-    rm "$index_entry"/{PKGBUILD,md5sums,FILES,DIRS,LINKS}
+    rm "$index_entry"/{PKGBUILD,sha1sums,FILES,DIRS,LINKS}
     rmdir "$index_entry"
     rmdir --ignore-fail-on-non-empty "${index_dir}/${pkgname}"
 }
@@ -226,7 +226,7 @@ lfs_me_load_package_files() {
         lfs_me_error "No arguments for '$1'"
     fi
     #extract meta files
-    if tar -xJf "$2" -C "$temp_dir" ./md5sums ./FILES ./DIRS ./LINKS ./PKGBUILD
+    if tar -xJf "$2" -C "$temp_dir" ./sha1sums ./FILES ./DIRS ./LINKS ./PKGBUILD
     then
         package_file=$2
         shift_value=1
@@ -262,7 +262,7 @@ lfs_me_load_package_files() {
             lfs_me_error "Could not load package files!"
         fi
 
-        cp "$index_entry"/{md5sums,FILES,DIRS,LINKS,PKGBUILD} "$temp_dir"
+        cp "$index_entry"/{sha1sums,FILES,DIRS,LINKS,PKGBUILD} "$temp_dir"
     fi
     pkgbuild_file="${temp_dir}/PKGBUILD"
     source "$pkgbuild_file"
@@ -623,7 +623,7 @@ case "$mode" in
         lfs_me_message "Extracting package"
         if $debug; then lfs_me_pause; fi
         mkdir -pv "${fakeroot_dir}/${install_prefix}"
-        tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./md5sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+        tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./sha1sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
 
         #install files with rsync
         lfs_me_message "Installing files"
@@ -703,12 +703,12 @@ case "$mode" in
         lfs_me_indexremove
         ;;
     "check")
-        lfs_me_message "Preparing md5sums"
+        lfs_me_message "Preparing sha1sums"
         if $debug; then lfs_me_pause; fi
 
 	    cd "$temp_dir"
-	    grep -ve "[a-z0-9]\{32\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" md5sums > md5sums.grep
-	    mv md5sums.grep md5sums
+	    grep -ve "[a-z0-9]\{40\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" sha1sums > sha1sums.grep
+	    mv sha1sums.grep sha1sums
 
         #verify checksums
         lfs_me_message "Verifying checksums"
@@ -716,9 +716,9 @@ case "$mode" in
         if $debug
         then 
             lfs_me_pause
-            md5sum -c "$temp_dir/md5sums" 2>&1 | tee "${current_dir}/${pkgname}-check-log"
+            sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${current_dir}/${pkgname}-check-log"
         else
-            md5sum -c "$temp_dir/md5sums"
+            sha1sum -c "$temp_dir/sha1sums"
         fi
         ;;
     "checksums")
