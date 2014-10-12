@@ -295,17 +295,18 @@ lfs_me_get_installed_files() {
 	unset list_current_package
 }
 
-#Those functions are allowed to be overwriten in PKGBUILD
+#--------------------------------------------------------------------------------
+#Those functions are supposed to be overloaded by the PKGBUILD
 lfs_me_prepare() {
-    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.gz" -C "$build_dir"
+	tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.gz" -C "$build_dir"
 
-    cd "${build_dir}/${pkgname}-${pkgver}"
+	cd "${build_dir}/${pkgname}-${pkgver}"
 
-    ./configure --prefix=/usr
+	./configure --prefix=/usr
 }
 
 lfs_me_build() {
-    make
+	make
 }
 
 lfs_me_check() {
@@ -313,16 +314,25 @@ lfs_me_check() {
 }
 
 lfs_me_install() {
-    make DESTDIR="${fakeroot_dir}" install
+	make DESTDIR="${fakeroot_dir}" install
+}
+
+lfs_me_preinstall() {
+	return
 }
 
 lfs_me_postinstall() {
-    return
+	return
+}
+
+lfs_me_preremove() {
+	return
 }
 
 lfs_me_postremove() {
-    return
+	return
 }
+#--------------------------------------------------------------------------------
 
 #initialize variables
 debug=false
@@ -581,6 +591,16 @@ case "$mode" in
         #check and load package file
 		[ -z $package_file ] && lfs_me_error "You have to specify a package file."
 
+		lfs_me_message "Running preinstall"
+		if $debug
+		then
+			lfs_me_pause
+			lfs_me_preinstall 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-preinstall.log"
+		else
+			lfs_me_preinstall
+		fi
+		cd "$current_dir"
+
         #extract files
         lfs_me_message "Extracting package"
         if $debug; then lfs_me_pause; fi
@@ -616,6 +636,15 @@ case "$mode" in
         lfs_me_message "Getting list of installed files"
         if $debug; then lfs_me_pause; fi
         lfs_me_get_installed_files false    #false: don't include files from the current package
+
+		lfs_me_message "Running preremove"
+		if $debug
+		then
+			lfs_me_pause
+			lfs_me_preremove 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-preremove.log"
+		else
+			lfs_me_preremove
+		fi
 
         #deleting files
         lfs_me_message "Deleting"

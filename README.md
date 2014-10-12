@@ -62,8 +62,10 @@ The functions are executed in the following order:
 2. `lfs_me_build()`: Do the actual compilation ( *make* ).
 3. `lfs_me_check()`: Run unit tests.
 4. `lfs_me_install()`: Install the built files into the *fakeroot_dir*
-5. `lfs_me_postinstall()`: This function is executed after a package has been installed ( into the actual filesystem ). It isn't executed when the package is created. You can use this to create users and groups for example.
-6. `lfs_me_postremove()`: This function is executed after a package has been removed from the system.
+5. `lfs_me_preinstall()`: This function is executed before a package gets installed to the system.
+6. `lfs_me_postinstall()`: This function is executed after a package has been installed ( into the actual filesystem ). It isn't executed when the package is created. You can use this to create users and groups or update info pages for example.
+7. `lfs_me_preremove()`: This function is executed before a package gets removed from the system.
+8. `lfs_me_postremove()`: This function is executed after a package has been removed from the system.
 
 Command line usage
 --------------------
