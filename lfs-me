@@ -82,7 +82,7 @@ lfs_me_sources() {
     if $download_sources
     then
         #Download missing files
-        if [[ ! -z ${sources+x} ]]
+        if [ ! -z ${sources+x} ]
         then
             for file in ${sources[@]}
             do
@@ -333,12 +333,10 @@ show_color=true
 install_prefix=""
 sources_dir="$current_dir"
 mode="undefined"
+show_help=false
 
 #load configuration file
-if [ -s ~/.lfs-me ]
-then
-    source ~/.lfs-me
-fi
+[ -f ~/.lfs-me ] && source ~/.lfs-me
 
 if ! $show_color
 then
@@ -350,34 +348,25 @@ for (( i=1; i<=$#; i++ ))
 do
     case "${!i}" in
         -b | --build-dir)
-            i=$(($i + 1))
+			((i++))
             build_dir="${!i}"
-            if [ ! -d "$build_dir" ]
-            then
-                lfs_me_error "Build directory \"${build_dir}\" not found!"
-            fi
+			[ -d "$build_dir" ] || lfs_me_error "Build directory '${build_dir}' not found!"
             ;;
         -D | --debug)
             debug=true
             ;;
         -f | --fakeroot-dir)
-            i=$(($i + 1))
+			((i++))
             fakeroot_dir="${!i}"
-            if [ ! -d "$fakeroot_dir" ]
-            then
-                lfs_me_error "Fakeroot directory \"${fakeroot_dir}\" not found!"
-            fi
+			[ -d "$fakeroot_dir" ] || lfs_me_error "Fakeroot directory '${fakeroot_dir}' not found!"
             ;;
         -h | --help)
 			show_help=true
             ;;
         -i | --index-dir)
-            i=$(($i + 1))
+            ((i++))
             index_dir="${!i}"
-            if [ ! -d "$index_dir" ]
-            then
-                lfs_me_error "Package index \"${index_dir}\" not found!"
-            fi
+			[ -d "$index_dir" ] || lfs_me_error "Package index '${index_dir}' not found!"
             ;;
         --no-checks)
             run_checks=false
@@ -392,23 +381,17 @@ do
             verify_checksums=false
             ;;
         -p | --prefix)
-            i=$(($i + 1))
+            ((i++))
             install_prefix="${!i}"
-            if [ ! -d "$install_prefix" ]
-            then
-                lfs_me_error "Install prefix \"${install_prefix}\" not found!"
-            fi
+			[ -d "$install_prefix" ] || lfs_me_error "Install prefix '${install_prefix}' not found!"
             ;;
         -s | --sources)
-            i=$(($i + 1))
+            ((i++))
             sources_dir="${!i}"
-            if [ ! -d "$sources_dir" ]
-            then
-                lfs_me_error "Sources dir \"${sources_dir}\" not found!"
-            fi
+			[ -d "$sources_dir" ] || lfs_me_error "Sources dir '${sources_dir}' not found!"
             ;;
         -*)
-            lfs_me_error "Unknown option \"${!i}\""
+            lfs_me_error "Unknown option '${!i}'"
             ;;
     esac
 done
@@ -426,7 +409,7 @@ fi
 index_dir="${install_prefix}/${index_dir}"
 mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir" 2> /dev/null
 
-#Get absolute paths for directories ( so cd works, even if in some weird directory )
+#Get absolute paths for directories ( so cd'ing to them works from everywhere )
 install_prefix=$(readlink -f "$install_prefix")
 build_dir=$(readlink -f "$build_dir")
 fakeroot_dir=$(readlink -f "$fakeroot_dir")
@@ -438,54 +421,33 @@ while :
 do
     case "$1" in
         build)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             mode="build"
             pkgbuild_file="$2"
-            if [ ! -f "$pkgbuild_file" ]
-            then
-                lfs_me_error "PKGBUILD file \"${pkgbuild_file}\" not found!"
-            fi
+			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
             shift 2
             ;;
         download)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             mode="download"
             pkgbuild_file="$2"
-            if [ ! -f "$pkgbuild_file" ]
-            then
-                lfs_me_error "PKGBUILD file \"${pkgbuild_file}\" not found!"
-            fi
+			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
             shift 2
             ;;
         indexadd)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="indexadd"
             ;;
         indexremove)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="indexremove"
             ;;
         indexlist)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             indexlist_search=""
             case $2 in
                 -*)
@@ -500,43 +462,28 @@ do
             shift
             ;;
         install)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="install"
             ;;
         remove)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="remove"
             ;;
         check)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="check"
             ;;
         checksums)
-            if [ "$mode" != "undefined" ]
-            then
-                lfs_me_error "Only one action can be performed!"
-            fi
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             mode="checksums"
             pkgbuild_file="$2"
-            if [ ! -f "$pkgbuild_file" ]
-            then
-                lfs_me_error "PKGBUILD file \"${pkgbuild_file}\" not found!"
-            fi
+			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
             shift 2
             ;;
         *)
@@ -545,8 +492,9 @@ do
     esac
 done
 
+
 case "$mode" in
-    "build")
+	build)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
         source "${temp_dir}/PKGBUILD"
         
@@ -554,14 +502,8 @@ case "$mode" in
         lfs_me_sources
 
 	    lfs_me_message "Preparing source"
-        if $debug
-        then
-            lfs_me_pause
-            #for some weird reason I can't use tee here to save the output
-            lfs_me_prepare
-        else
-            lfs_me_prepare
-        fi
+		if $debug; then lfs_me_pause; fi
+		lfs_me_prepare
         
 	    lfs_me_message "Building"
         if $debug
@@ -584,7 +526,6 @@ case "$mode" in
         then 
             lfs_me_pause
             lfs_me_install 2>&1 | tee "${current_dir}/${pkgname}-install-log"
-
         else
             lfs_me_install
         fi
@@ -594,7 +535,7 @@ case "$mode" in
         lfs_me_package
         ;;
 
-    "download")
+	download)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
         source "${temp_dir}/PKGBUILD"
 
@@ -602,25 +543,22 @@ case "$mode" in
         lfs_me_sources
         ;;
 
-    "indexadd")
+	indexadd)
         lfs_me_indexadd
         ;;
 
-    "indexremove")
+	indexremove)
         lfs_me_indexremove
         ;;
 
-    "indexlist")
+	indexlist)
 		lfs_me_get_installed_packages
-		cat "${temp_dir}/ALL_PACKAGES" | grep -i "$indexlist_search"
+		cat "${temp_dir}/ALL_PACKAGES" | sed 's!/! !g' | grep -i "$indexlist_search"
         ;;
 
-    "install")
+	install)
         #check and load package file
-        if [[ -z $package_file ]]
-        then
-            lfs_me_error "You have to specify a package file."
-        fi
+		[ -z $package_file ] && lfs_me_error "You have to specify a package file."
 
         #extract files
         lfs_me_message "Extracting package"
@@ -653,7 +591,7 @@ case "$mode" in
         lfs_me_indexadd
         ;;
 
-    "remove")
+	remove)
         lfs_me_message "Getting list of installed files"
         if $debug; then lfs_me_pause; fi
         lfs_me_get_installed_files false    #false: don't include files from the current package
@@ -662,34 +600,33 @@ case "$mode" in
         lfs_me_message "Deleting"
         if $debug; then lfs_me_pause; fi
 	    cd "$temp_dir"
-        #TODO: What about filenames with newline characters?
         for file in $( cat FILES )
         do
-            if ! grep -q "^${file}$" "${temp_dir}/ALL_FILES"
-            then
-                rm -f "${install_prefix}/${file}"
-            else
-                echo "Didn't remove file '${install_prefix}/${file}', still needed."
-            fi
+			if grep -q "^${file}$" "${temp_dir}/ALL_FILES"
+			then
+				echo "Didn't remove file '${install_prefix}/${file}', still needed."
+			else
+				rm -f "${install_prefix}/${file}"
+			fi
         done
         for directory in $( sort -r DIRS )  #Sort in order to remove subdirs first
         do
-            if ! grep -q "^${directory}$" "${temp_dir}/ALL_FILES"
-            then
-                rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
-            else
-                echo "Didn't remove directory '${install_prefix}/${directory}', still needed."
-            fi
+			if grep -q "^${directory}$" "${temp_dir}/ALL_FILES"
+			then
+				echo "Didn't remove directory '${install_prefix}/${directory}', still needed."
+			else
+				rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
+			fi
         done
         for link in $( cat LINKS )
         do
-            #only remove broken symlinks
-            if ! test -r "${install_prefix}/${link}"
-            then
-                rm -f "${install_prefix}/${link}"
-            else
-                echo "Didn't remove link '${install_prefix}/${link}', still needed."
-            fi
+			#only remove broken symlinks
+			if test -r "${install_prefix}/${link}"
+			then
+				echo "Didn't remove link '${install_prefix}/${link}', still needed."
+			else
+				rm -f "${install_prefix}/${link}"
+			fi
         done
 
         #postremove script
@@ -705,7 +642,7 @@ case "$mode" in
         #remove from index
         lfs_me_indexremove
         ;;
-    "check")
+	check)
         lfs_me_message "Preparing sha1sums"
         if $debug; then lfs_me_pause; fi
 
@@ -724,7 +661,7 @@ case "$mode" in
             sha1sum -c "$temp_dir/sha1sums"
         fi
         ;;
-    "checksums")
+	checksums)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
         source "${temp_dir}/PKGBUILD"
 
