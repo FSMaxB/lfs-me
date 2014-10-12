@@ -167,7 +167,7 @@ lfs_me_message() {
 
 lfs_me_cleanup() {
     #clean up tempfiles
-    if $debug; then lfs_me_pause; fi
+	if $debug; then lfs_me_pause; fi
     rm -rf "$temp_dir"
 }
 
@@ -194,7 +194,7 @@ lfs_me_package() {
 
 lfs_me_indexadd() {
     lfs_me_message "Adding to package index"
-    if $debug; then lfs_me_pause; fi
+	if $debug; then lfs_me_pause; fi
     index_entry="${index_dir}/${pkgname}/${pkgver}"
     mkdir -p "$index_entry"
     cp "$temp_dir"/{PKGBUILD,sha1sums,FILES,DIRS,LINKS} "$index_entry"
@@ -202,7 +202,7 @@ lfs_me_indexadd() {
 
 lfs_me_indexremove() {
     lfs_me_message "Removing from package index"
-    if $debug; then lfs_me_pause; fi
+	if $debug; then lfs_me_pause; fi
     #get name of directory
     index_entry="${index_dir}/${pkgname}/${pkgver}"
 
@@ -315,7 +315,7 @@ lfs_me_build() {
 }
 
 lfs_me_check() {
-	make check 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-check.log"
+	make check 2>&1 | tee "${log_dir}/last-check.log"
 }
 
 lfs_me_install() {
@@ -345,6 +345,7 @@ temp_dir="$(mktemp -d)"
 build_dir="${temp_dir}/build"
 fakeroot_dir="${temp_dir}/fakeroot"
 index_dir="/var/lfs-me/index"
+log_dir="/var/log/lfs-me"
 current_dir=$( pwd )
 run_checks=true
 download_sources=true
@@ -388,6 +389,11 @@ do
             index_dir="${!i}"
 			[ -d "$index_dir" ] || lfs_me_error "Package index '${index_dir}' not found!"
             ;;
+		-l | --log-dir)
+			((i++))
+			log_dir="${!i}"
+			[ -d "$log_dir" ] || lfs_me_error "Log directory '${log_dir} not found!'"
+			;;
         --no-checks)
             run_checks=false
             ;;
@@ -427,7 +433,7 @@ fi
 
 #Create all the necessary directories
 index_dir="${install_prefix}/${index_dir}"
-mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir" 2> /dev/null
+mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir" "$log_dir" 2> /dev/null
 
 #Get absolute paths for directories ( so cd'ing to them works from everywhere )
 install_prefix=$(readlink -f "$install_prefix")
@@ -435,6 +441,7 @@ build_dir=$(readlink -f "$build_dir")
 fakeroot_dir=$(readlink -f "$fakeroot_dir")
 sources_dir=$(readlink -f "$sources_dir")
 index_dir=$(readlink -f "$index_dir")
+log_dir=$(readlink -f "$log_dir")
 
 #Parse Arguments
 while :
@@ -538,32 +545,22 @@ case "$mode" in
 		lfs_me_prepare
         
 	    lfs_me_message "Building"
-        if $debug
-        then 
-            lfs_me_pause
-            lfs_me_build 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-build.log"
-        else
-            lfs_me_build
-        fi
+		if $debug; then lfs_me_pause; fi
+		lfs_me_build 2>&1 | tee "${log_dir}/last-build.log"
        
         if $run_checks
         then
             lfs_me_message "Running checks"
-            if $debug; then lfs_me_pause; fi
+			if $debug; then lfs_me_pause; fi
             lfs_me_check
         fi
         
 	    lfs_me_message "Installing to fakeroot"
-        if $debug
-        then 
-            lfs_me_pause
-            lfs_me_install 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-install.log"
-        else
-            lfs_me_install
-        fi
+		if $debug; then lfs_me_pause; fi
+		lfs_me_install 2>&1 | tee "${log_dir}/last-install.log"
         
 	    lfs_me_message "Packaging"
-        if $debug; then lfs_me_pause; fi
+		if $debug; then lfs_me_pause; fi
         lfs_me_package
         ;;
 
@@ -597,41 +594,26 @@ case "$mode" in
 		[ -z $package_file ] && lfs_me_error "You have to specify a package file."
 
 		lfs_me_message "Running preinstall"
-		if $debug
-		then
-			lfs_me_pause
-			lfs_me_preinstall 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-preinstall.log"
-		else
-			lfs_me_preinstall
-		fi
+		if $debug; then lfs_me_pause; fi
+		lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
 		cd "$current_dir"
 
         #extract files
         lfs_me_message "Extracting package"
-        if $debug; then lfs_me_pause; fi
+		if $debug; then lfs_me_pause; fi
         mkdir -pv "${fakeroot_dir}/${install_prefix}"
         tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./sha1sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
 
         #install files with rsync
         lfs_me_message "Installing files"
-        if $debug
-        then 
-            lfs_me_pause
-            rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-install.log"
-        else
-            rsync -rlpgoDK "${fakeroot_dir}/" /
-        fi
+		if $debug; then lfs_me_pause; fi
+		rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${log_dir}/last-install.log"
 
         #postinstall script
 	    lfs_me_message "Running postinstall"
         cd "$temp_dir"
-        if $debug
-        then 
-            lfs_me_pause
-            lfs_me_postinstall 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-postinstall.log"
-        else
-            lfs_me_postinstall
-        fi
+		if $debug; then lfs_me_pause; fi
+		lfs_me_postinstall 2>&1 | tee "${log_dir}/last-postinstall.log"
 
         #add to index
         lfs_me_indexadd
@@ -639,21 +621,16 @@ case "$mode" in
 
 	remove)
         lfs_me_message "Getting list of installed files"
-        if $debug; then lfs_me_pause; fi
+		if $debug; then lfs_me_pause; fi
         lfs_me_get_installed_files false    #false: don't include files from the current package
 
 		lfs_me_message "Running preremove"
-		if $debug
-		then
-			lfs_me_pause
-			lfs_me_preremove 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-preremove.log"
-		else
-			lfs_me_preremove
-		fi
+		if $debug; then lfs_me_pause; fi
+		lfs_me_preremove 2>&1 | tee "${log_dir}/last-preremove.log"
 
         #deleting files
         lfs_me_message "Deleting"
-        if $debug; then lfs_me_pause; fi
+		if $debug; then lfs_me_pause; fi
 	    cd "$temp_dir"
         for file in $( cat FILES )
         do
@@ -686,20 +663,15 @@ case "$mode" in
 
         #postremove script
         lfs_me_message "Running postremove"
-        if $debug
-        then 
-            lfs_me_pause
-            lfs_me_postremove 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-postremove.log"
-        else
-            lfs_me_postremove
-        fi
+		if $debug; then lfs_me_pause; fi
+		lfs_me_postremove 2>&1 | tee "${log_dir}/last-postremove.log"
 
         #remove from index
         lfs_me_indexremove
         ;;
 	check)
         lfs_me_message "Preparing sha1sums"
-        if $debug; then lfs_me_pause; fi
+		if $debug; then lfs_me_pause; fi
 
 	    cd "$temp_dir"
 	    grep -ve "[a-z0-9]\{40\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" sha1sums > sha1sums.grep
@@ -708,13 +680,8 @@ case "$mode" in
         #verify checksums
         lfs_me_message "Verifying checksums"
         cd "${install_prefix}/"
-        if $debug
-        then 
-            lfs_me_pause
-            sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-checksums.log"
-        else
-            sha1sum -c "$temp_dir/sha1sums"
-        fi
+		if $debug; then lfs_me_pause; fi
+		sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${log_dir}/last-checksums.log"
         ;;
 	checksums)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
@@ -737,5 +704,7 @@ case "$mode" in
         lfs_me_error "No action specified!"
         ;;
 esac
+
+if $debug; then echo "You can find logfiles in '${log_dir}'!"; fi
 
 lfs_me_cleanup

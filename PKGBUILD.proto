@@ -25,7 +25,7 @@ lfs_me_build() {
 }
 
 lfs_me_check() {
-    make check 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-check.log"
+    make check 2>&1 | tee "${log_dir}/last-check.log"
 }
 
 lfs_me_install() {

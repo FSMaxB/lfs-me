@@ -54,6 +54,7 @@ Those variables are provided by *lfs-me* and mustn't be changed in the *PKGBUILD
 * `fakeroot_dir`: Directory in which the package is to be installed ( instead of the root directory ). The package tarball is created from this directory.
 * `build_dir`: Directory to extract the source files to and build the package in.
 * `sources_dir`: Directory in which the source tarballs are stored.
+* `log_dir`: Directory where logs get stored.
 
 #### Functions:
 If you don't include a function it falls back to its default behavior.
@@ -104,6 +105,7 @@ Command line usage
 |`-f`     |`--fakeroot-dir`    |Specify fakeroot directory (see predefined variables)|
 |`-h`     |`--help`            |Show help output                                     |
 |`-i`     |`--index-dir`       |Specify index directory                              |
+|`-l`     |`--log-dir`         |Specify log directory                                |
 |         |`--no-checks`       |Don't run tests                                      |
 |         |`--no-color`        |Disable color                                        |
 |         |`--no-downloads`    |Don't download sources                               |
@@ -119,6 +121,7 @@ You can create the configuration file `~/.lfs-me` to set default values for vari
 * `install_prefix`
 * `sources_dir`
 * `index_dir`
+* `log_dir`
 * `run_checks`: *true* or *false*
 * `download_sources`: *true* or *false*
 * `verify_checksums`: *true* or *false*
