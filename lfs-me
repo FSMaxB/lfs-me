@@ -258,7 +258,7 @@ lfs_me_load_package_files() {
         cp "$index_entry"/{sha1sums,FILES,DIRS,LINKS,PKGBUILD} "$temp_dir"
     fi
     pkgbuild_file="${temp_dir}/PKGBUILD"
-    source "$pkgbuild_file"
+	lfs_me_load_pkgbuild
     return "$shift_value"
 }
 
@@ -293,6 +293,11 @@ lfs_me_get_installed_files() {
 		fi
 	done
 	unset list_current_package
+}
+
+lfs_me_load_pkgbuild() {
+	source "${temp_dir}/PKGBUILD"
+	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 2 ] || lfs_me_error "PKGBUILD has wrong version. Version 2 expected."
 }
 
 #--------------------------------------------------------------------------------
@@ -523,7 +528,7 @@ done
 case "$mode" in
 	build)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
-        source "${temp_dir}/PKGBUILD"
+		lfs_me_load_pkgbuild
         
         lfs_me_message "Getting sources"
         lfs_me_sources
@@ -564,7 +569,7 @@ case "$mode" in
 
 	download)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
-        source "${temp_dir}/PKGBUILD"
+		lfs_me_load_pkgbuild
 
         lfs_me_message "Getting sources"
         lfs_me_sources
@@ -713,7 +718,7 @@ case "$mode" in
         ;;
 	checksums)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
-        source "${temp_dir}/PKGBUILD"
+		lfs_me_load_pkgbuild
 
         lfs_me_message "Creating SHA1 checksums"
         lfs_me_checksums

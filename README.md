@@ -43,6 +43,7 @@ PKGBUILD
 Create a new package by copying and modifying `PKGBUILD.proto`. The *PKGBUILD* is loaded by *lfs-me* and then the different functions are executed.
 
 #### Variables:
+* `pkgbuild_version`: Version of the PKGBUILD format.
 * `pkgname`: The name of the package.
 * `pkgver`: The version string for the package.
 * `sources`: An array containing the download URLs of the source files.
