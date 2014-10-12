@@ -82,7 +82,7 @@ Command line usage
 |`indexremove`   |*pkgname* *pkgver*                    |Remove a package from the index without removing it from the system.                         |
 |`indexremove`   |*pkgname*                             |Remove a package from the index without removing it from the system.                         |
 |`indexlist`     |                                      |List all packages in the package index.                                                      |
-|`indexlist`     |searchterm                            |Search for packages in the index.                                                            |
+|`indexlist`     |*searchterm*                          |Search for packages in the index.                                                            |
 |`list`          |*package.pkg*                         |List all files of a package.                                                                 |
 |`list`          |*pkgname* *pkgver*                    |List all files of a package.                                                                 |
 |`list`          |*pkgname*                             |List all files of a package.                                                                 |
@@ -91,6 +91,7 @@ Command line usage
 |`check`         |*pkgname*                             |Check the installed files                                                                    |
 |`checksums`     |*PKGBUILD-file*                       |Create checksums for downloaded source files specified in the *sources* array in the PKGBUILD|
 |`download`      |*PKGBUILD-file*                       |Download the source files specified in the *sources* array in the PKGBUILD                   |
+|`owner`         |*file*                                |List all packages that own a file.                                                           |
 
 #### Options
 |  short  |        long        |                    description                      |

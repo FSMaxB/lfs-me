@@ -65,7 +65,8 @@ lfs_me_help() {
     echo -e "${color_bblue} check        ${color_blue}pkgname pkgver           Verify checksums of files installed by package"
     echo -e "${color_bblue} check        ${color_blue}pkgname                  Verify checksums of files installed by package"
     echo -e "${color_bblue} checksums    ${color_blue}PKGBUILD-file            Create SHA1 sums for all source files"
-    echo -e "${color_bblue} download     ${color_blue}PKGBUILD-file            Download source files\n"
+    echo -e "${color_bblue} download     ${color_blue}PKGBUILD-file            Download source files"
+    echo -e "${color_bblue} owner        ${color_blue}file                     List all packages that own a file.\n"
 
     echo -e "${color_bblue}Options:"
     echo -e "${color_bblue} -b | --build-dir         ${color_blue}Specify the build directory"
@@ -496,6 +497,12 @@ do
 			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
             shift 2
             ;;
+		owner)
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			filename=$(readlink -f "$2")
+			mode=owner
+			shift 2
+			;;
         *)
             break
             ;;
@@ -682,6 +689,16 @@ case "$mode" in
         lfs_me_message "Creating SHA1 checksums"
         lfs_me_checksums
         ;;
+	owner)
+		lfs_me_get_installed_packages
+		for package in $(cat "${temp_dir}/ALL_PACKAGES")
+		do
+			for file in $(cat "${index_dir}/${package}/"{FILES,DIRS,LINKS})
+			do
+				[ $(readlink -f "$file") == "$filename" ] && echo "${package/\//-}"
+			done
+		done
+		;;
     *)
         lfs_me_error "No action specified!"
         ;;
