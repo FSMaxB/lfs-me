@@ -56,7 +56,11 @@ lfs_me_help() {
     echo -e "${color_bblue} indexremove  ${color_blue}package.pkg              Remove a package from the index"
     echo -e "${color_bblue} indexremove  ${color_blue}pkgname pkgver           Remove a package from the index"
     echo -e "${color_bblue} indexremove  ${color_blue}pkgname                  Remove a package from the index"
-    echo -e "${color_bblue} indexlist    ${color_blue}                         List all packages in the index"
+	echo -e "${color_bblue} indexlist    ${color_blue}                         List all package in the index"
+	echo -e "${color_bblue} indexlist    ${color_blue}searchterm               Search for packages in the index"
+	echo -e "${color_bblue} list         ${color_blue}package.pkg              List all files of a package"
+	echo -e "${color_bblue} list         ${color_blue}pkgname                  List all files of a package"
+	echo -e "${color_bblue} list         ${color_blue}pkgname pkgver           List all files of a package"
     echo -e "${color_bblue} check        ${color_blue}package.pkg              Verify checksums of files installed by package"
     echo -e "${color_bblue} check        ${color_blue}pkgname pkgver           Verify checksums of files installed by package"
     echo -e "${color_bblue} check        ${color_blue}pkgname                  Verify checksums of files installed by package"
@@ -461,6 +465,12 @@ do
             mode="indexlist"
             shift
             ;;
+		list)
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			lfs_me_load_package_files "$@"
+			shift "$shift_value"
+			mode=list
+			;;
         install)
 			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             lfs_me_load_package_files "$@"
@@ -555,6 +565,10 @@ case "$mode" in
 		lfs_me_get_installed_packages
 		cat "${temp_dir}/ALL_PACKAGES" | sed 's!/! !g' | grep -i "$indexlist_search"
         ;;
+
+	list)
+		cat "$temp_dir"/{FILES,DIRS,LINKS} | grep -v '^$'
+		;;
 
 	install)
         #check and load package file

@@ -70,21 +70,25 @@ Command line usage
 `lfs-me mode file [options]`
 
 #### Modes
-|    mode   |   parameter   |                                    description                                              |
+|      mode      |              parameter               |                                       description                                           |
 |:---------------|:-------------------------------------|---------------------------------------------------------------------------------------------|
 |`build`         |*PKGBUILD-file*                       |Build the package specified by the PKGBUILD                                                  |
 |`install`       |*package.pkg*                         |Install a package to the system                                                              |
 |`remove`        |*package.pkg*                         |Remove a package from the system and index.                                                  |
-|`remove`        |*pkgname* *pkgver*            |Remove a package from the system and index.                                                  |
-|`remove`        |*pkgname*                     |Remove a package from the system and index.                                                  |
+|`remove`        |*pkgname* *pkgver*                    |Remove a package from the system and index.                                                  |
+|`remove`        |*pkgname*                             |Remove a package from the system and index.                                                  |
 |`indexadd`      |*package.pkg*                         |Add a package to the package index without installing it.                                    |
-|`indexremove`   |*package.pkg*                         |Remove a package from the index without removing from the system.                            |
-|`indexremove`   |*pkgname* *pkgver*            |Remove a package from the index without removing it from the system                          |
-|`indexremove`   |*pkgname*                     |Remove a package from the index without removing it from the system                          |
+|`indexremove`   |*package.pkg*                         |Remove a package from the index without removing it from the system.                         |
+|`indexremove`   |*pkgname* *pkgver*                    |Remove a package from the index without removing it from the system.                         |
+|`indexremove`   |*pkgname*                             |Remove a package from the index without removing it from the system.                         |
 |`indexlist`     |                                      |List all packages in the package index.                                                      |
+|`indexlist`     |searchterm                            |Search for packages in the index.                                                            |
+|`list`          |*package.pkg*                         |List all files of a package.                                                                 |
+|`list`          |*pkgname* *pkgver*                    |List all files of a package.                                                                 |
+|`list`          |*pkgname*                             |List all files of a package.                                                                 |
 |`check`         |*package.pkg*                         |Check the installed files                                                                    |
-|`check`         |*pkgname* *pkgver*            |Check the installed files                                                                    |
-|`check`         |*pkgname*                     |Check the installed files                                                                    |
+|`check`         |*pkgname* *pkgver*                    |Check the installed files                                                                    |
+|`check`         |*pkgname*                             |Check the installed files                                                                    |
 |`checksums`     |*PKGBUILD-file*                       |Create checksums for downloaded source files specified in the *sources* array in the PKGBUILD|
 |`download`      |*PKGBUILD-file*                       |Download the source files specified in the *sources* array in the PKGBUILD                   |
 
