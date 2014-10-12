@@ -29,13 +29,13 @@ Index
 To keep track of what packages and what files are installed on the system, the metadata files (`sha1sums`, `PKGBUILD` etc.) get installed into the package index. The package index is a directory structure of the following form:
 
     $install_prefix/$index_dir
-                          |-->$pkgname
-                                  |-->$pkgver
-                                         |-->sha1sums
-                                         |-->PKGBUILD
-                                         |-->DIRS
-                                         |-->FILES
-                                         |-->LINKS
+    └── $pkgname
+        └── $pkgver
+            ├── sha1sums
+            ├── PKGBUILD
+            ├── DIRS
+            ├── FILES
+            └── LINKS
 Where `$...` are the respective values of the variables.
 
 PKGBUILD
