@@ -367,9 +367,7 @@ do
             fi
             ;;
         -h | --help)
-            lfs_me_help
-            lfs_me_cleanup
-            exit 0
+			show_help=true
             ;;
         -i | --index-dir)
             i=$(($i + 1))
@@ -413,6 +411,14 @@ do
     esac
 done
 unset i
+
+#show help
+if $show_help
+then
+	lfs_me_help
+	lfs_me_cleanup
+	exit 0
+fi
 
 #Create all the necessary directories
 index_dir="${install_prefix}/${index_dir}"
