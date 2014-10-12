@@ -1,15 +1,18 @@
-#!/bin/bash
 pkgname=packagename
 pkgver=1.1.1
 
-sources=( "http://www.somedomain.com/${pkgname}-${pkgver}.tar.bz2"  #URL
-          "install.txt" )   # local file
-sha1sums=( '046fb3a32f7c2b21ae30d7f5566b112ca577f1dc'
-           '9885f59aa51fa20e67c4c8454f2a931d7722c73a' )
+sources=(
+	"http://www.somedomain.com/${pkgname}-${pkgver}.tar.gz"
+)
+
+sha1sums=(
+	'046fb3a32f7c2b21ae30d7f5566b112ca577f1dc'
+	'9885f59aa51fa20e67c4c8454f2a931d7722c73a'
+)
 
 # All the following functions are already provided and you only need them if they differ
 lfs_me_prepare() {
-    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "$build_dir"
+    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.gz" -C "$build_dir"
 
     cd "${build_dir}/${pkgname}-${pkgver}"
 
@@ -21,7 +24,7 @@ lfs_me_build() {
 }
 
 lfs_me_check() {
-    make check 2>&1 | tee "${current_dir}/${pkgname}-check-log"
+    make check 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-check-log"
 }
 
 lfs_me_install() {
@@ -29,9 +32,11 @@ lfs_me_install() {
 }
 
 lfs_me_postinstall() {
-    return
+	return
 }
 
 lfs_me_postremove() {
-    return
+	return
 }
+
+# vim:set syntax=sh et:

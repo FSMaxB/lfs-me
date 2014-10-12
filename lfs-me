@@ -297,7 +297,7 @@ lfs_me_get_installed_files() {
 
 #Those functions are allowed to be overwriten in PKGBUILD
 lfs_me_prepare() {
-    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.bz2" -C "$build_dir"
+    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.gz" -C "$build_dir"
 
     cd "${build_dir}/${pkgname}-${pkgver}"
 
@@ -309,7 +309,7 @@ lfs_me_build() {
 }
 
 lfs_me_check() {
-    make check 2>&1 | tee "${current_dir}/${pkgname}-check-log"
+    make check 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-check-log"
 }
 
 lfs_me_install() {
@@ -526,7 +526,7 @@ case "$mode" in
         if $debug
         then 
             lfs_me_pause
-            lfs_me_build 2>&1 | tee "${current_dir}/${pkgname}-build-log"
+            lfs_me_build 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-build-log"
         else
             lfs_me_build
         fi
@@ -542,7 +542,7 @@ case "$mode" in
         if $debug
         then 
             lfs_me_pause
-            lfs_me_install 2>&1 | tee "${current_dir}/${pkgname}-install-log"
+            lfs_me_install 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-install-log"
         else
             lfs_me_install
         fi
@@ -592,7 +592,7 @@ case "$mode" in
         if $debug
         then 
             lfs_me_pause
-            rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${current_dir}/${pkgname}-install-log"
+            rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-install-log"
         else
             rsync -rlpgoDK "${fakeroot_dir}/" /
         fi
@@ -603,7 +603,7 @@ case "$mode" in
         if $debug
         then 
             lfs_me_pause
-            lfs_me_postinstall 2>&1 | tee "${current_dir}/${pkgname}-postinstall-log"
+            lfs_me_postinstall 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-postinstall-log"
         else
             lfs_me_postinstall
         fi
@@ -655,7 +655,7 @@ case "$mode" in
         if $debug
         then 
             lfs_me_pause
-            lfs_me_postremove 2>&1 | tee "${current_dir}/${pkgname}-postremove-log"
+            lfs_me_postremove 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-postremove-log"
         else
             lfs_me_postremove
         fi
@@ -677,7 +677,7 @@ case "$mode" in
         if $debug
         then 
             lfs_me_pause
-            sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${current_dir}/${pkgname}-check-log"
+            sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${current_dir}/${pkgname}-${pkgver}-checksums-log"
         else
             sha1sum -c "$temp_dir/sha1sums"
         fi
