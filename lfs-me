@@ -48,6 +48,9 @@ lfs_me_help() {
 
     echo -e "${color_bblue}Modes:"
     echo -e "${color_bblue} build        ${color_blue}PKGBUILD-file            Build the package specified by PKGBUILD-file"
+    echo -e "${color_bblue} rebuild      ${color_blue}package.pkg              Rebuild a package from an existing one."
+    echo -e "${color_bblue} rebuild      ${color_blue}pkgname                  Rebuild a package from an existing one."
+    echo -e "${color_bblue} rebuild      ${color_blue}pkgname pkgver           Rebuild a package from an existing one."
     echo -e "${color_bblue} install      ${color_blue}package.pkg              Install a package to system and index"
     echo -e "${color_bblue} remove       ${color_blue}package.pkg              Remove a package from system and index"
     echo -e "${color_bblue} remove       ${color_blue}pkgname pkgver           Remove a package from system and index"
@@ -465,6 +468,12 @@ do
 			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
             shift 2
             ;;
+		rebuild)
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			lfs_me_load_package_files "$@"
+			shift "$shift_value"
+			mode="build"
+			;;
         download)
 			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
             mode="download"

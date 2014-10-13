@@ -79,6 +79,9 @@ Command line usage
 |      mode      |              parameter               |                                       description                                           |
 |:---------------|:-------------------------------------|---------------------------------------------------------------------------------------------|
 |`build`         |*PKGBUILD-file*                       |Build the package specified by the PKGBUILD                                                  |
+|`rebuild`       |*package.pkg*                         |Rebuild a package from an existing one.                                                      |
+|`rebuild`       |*pkgname*                             |Rebuild a package from an existing one.                                                      |
+|`rebuild`       |*pkgname* *pkgver*                    |Rebuild a package from an existing one.                                                      |
 |`install`       |*package.pkg*                         |Install a package to the system                                                              |
 |`remove`        |*package.pkg*                         |Remove a package from the system and index.                                                  |
 |`remove`        |*pkgname* *pkgver*                    |Remove a package from the system and index.                                                  |
