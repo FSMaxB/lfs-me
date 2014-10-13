@@ -1,11 +1,24 @@
 Changelog
 =========
 
+v2.0.0
+------
+* **Support for dependencies**
+* SHA1 sums for index
+* Format version checks for index and PKGBUILD format
+* removed the `pkgver_postfix` variable
+* log directory
+* `lfs_me_preinstall` and `lfs_me_preremove`
+* New commands: `list`, `owner`, `rebuild` and `checkdeps`
+* General code cleanup
+* fixes
+
 v1.0.1
 ------
 * search function for `indexlist`
 * changed license to GPLv3 **without** any later versions
 * fixes
+
 **This is the last version before breaking the index, package and PKGBUILD format, so use this for older systems and PKGBUILDS!**
 
 v1.0.0
