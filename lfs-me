@@ -48,6 +48,10 @@ lfs_me_help() {
 
     echo -e "${color_bblue}Modes:"
     echo -e "${color_bblue} build        ${color_blue}PKGBUILD-file            Build the package specified by PKGBUILD-file"
+    echo -e "${color_bblue} checkdeps    ${color_blue}PKGBUILD-file            Check if all dependencies are met."
+    echo -e "${color_bblue} checkdeps    ${color_blue}package.pkg              Check if all dependencies are met."
+    echo -e "${color_bblue} checkdeps    ${color_blue}package                  Check if all dependencies are met."
+    echo -e "${color_bblue} checkdeps    ${color_blue}package pkgver           Check if all dependencies are met."
     echo -e "${color_bblue} rebuild      ${color_blue}package.pkg              Rebuild a package from an existing one."
     echo -e "${color_bblue} rebuild      ${color_blue}pkgname                  Rebuild a package from an existing one."
     echo -e "${color_bblue} rebuild      ${color_blue}pkgname pkgver           Rebuild a package from an existing one."
@@ -314,6 +318,59 @@ lfs_me_load_pkgbuild() {
 	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 2 ] || lfs_me_error "PKGBUILD has wrong version. Version 2 expected."
 }
 
+#Checks if the necessary dependencies are installed
+lfs_me_check_dependencies() {
+	lfs_me_get_installed_packages
+	dependencies_met=true
+	for dep in "${dependencies[@]}"
+	do
+		package=$(echo "$dep" | awk -F '[><]?=?' '/.*/ { print $1 }')
+		version=$(echo "$dep" | awk -F '[><]?=?' '/.*/ { print $2 }')
+		comparator=$(echo "$dep" | grep -o -E '[><]?=?')
+
+		IFS='/' read -a installed <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep -E "^$package/")
+
+		if [ -z "${installed[0]}" ]
+		then	#package not installed
+			dependencies_met=false
+			echo -e "${package}: MISSING"
+		elif [ -z "$version" ]
+		then
+			#dependency is single package name without version requirement
+			echo -e "${package}: FOUND"
+		else
+			#use sort's version sorting to check which is newer
+			older=true
+			echo -e "$version\n${installed[1]}" | sort -VC && older=false
+			newer=true
+			echo -e "${installed[1]}\n$version" | sort -VC && newer=false
+
+			case "$comparator" in
+				">")
+					$newer && dep_met=true || dep_met=false
+					;;
+				"<")
+					$older && dep_met=true || dep_met=false
+					;;
+				"=")
+					! $newer && ! $older && dep_met=true || dep_met=false
+					;;
+				">=")
+					! $older && dep_met=true || dep_met=false
+					;;
+				"<=")
+					! $newer && dep_met=true || dep_met=false
+					;;
+				*)
+					lfs_me_error "Unknown comparator '$comparator'!"
+			esac
+			$dep_met && echo -e "${dep}: FOUND (${installed[1]})"
+			! $dep_met && echo -e "${dep}: WRONG VERSION (${installed[1]})" && dependencies_met=false
+		fi
+	done
+	! $dependencies_met && lfs_me_error "Dependencies aren't met!"
+}
+
 #--------------------------------------------------------------------------------
 #Those functions are supposed to be overloaded by the PKGBUILD
 lfs_me_prepare() {
@@ -468,6 +525,22 @@ do
 			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
             shift 2
             ;;
+		checkdeps)
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			if file -b "$2" | grep -q '\stext\s' 
+			then
+				pkgbuild_file="$2"
+				cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
+				lfs_me_load_pkgbuild
+				shift 1
+			else
+				lfs_me_load_package_files "$@"
+				shift "$shift_value"
+			fi
+			lfs_me_check_dependencies
+			lfs_me_cleanup
+			exit 0
+			;;
 		rebuild)
 			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
 			lfs_me_load_package_files "$@"
@@ -556,6 +629,9 @@ case "$mode" in
 	build)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
 		lfs_me_load_pkgbuild
+
+		lfs_me_message "Checking dependencies"
+		lfs_me_check_dependencies
         
         lfs_me_message "Getting sources"
         lfs_me_sources
@@ -610,6 +686,9 @@ case "$mode" in
 		;;
 
 	install)
+		lfs_me_message "Checking dependencies"
+		lfs_me_check_dependencies
+
         #check and load package file
 		[ -z $package_file ] && lfs_me_error "You have to specify a package file."
 

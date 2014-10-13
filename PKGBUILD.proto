@@ -2,6 +2,10 @@ pkgbuild_version=2
 pkgname=packagename
 pkgver=1.1.1
 
+dependencies=(
+	'packe'
+	'otherpackage>2'
+)
 sources=(
 	"http://www.somedomain.com/${pkgname}-${pkgver}.tar.gz"
 )
@@ -13,23 +17,23 @@ sha1sums=(
 
 # All the following functions are already provided and you only need them if they differ
 lfs_me_prepare() {
-    tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.gz" -C "$build_dir"
+	tar -xf "${sources_dir}/${pkgname}-${pkgver}.tar.gz" -C "$build_dir"
 
-    cd "${build_dir}/${pkgname}-${pkgver}"
+	cd "${build_dir}/${pkgname}-${pkgver}"
 
-    ./configure --prefix=/usr
+	./configure --prefix=/usr
 }
 
 lfs_me_build() {
-    make
+	make
 }
 
 lfs_me_check() {
-    make check 2>&1 | tee "${log_dir}/last-check.log"
+	make check 2>&1 | tee "${log_dir}/last-check.log"
 }
 
 lfs_me_install() {
-    make DESTDIR="$fakeroot_dir" install
+	make DESTDIR="$fakeroot_dir" install
 }
 
 lfs_me_preinstall() {

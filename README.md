@@ -48,6 +48,7 @@ Create a new package by copying and modifying `PKGBUILD.proto`. The *PKGBUILD* i
 * `pkgbuild_version`: Version of the PKGBUILD format.
 * `pkgname`: The name of the package.
 * `pkgver`: The version string for the package.
+* `dependencies`: An array containing a list of all dependencies of the package. See more on the *Dependencies* section.
 * `sources`: An array containing the download URLs of the source files.
 * `sha1sums`: An array containing the SHA1 checksums of the sources files in order to check the integrity.
 
@@ -71,6 +72,15 @@ The functions are executed in the following order:
 7. `lfs_me_preremove()`: This function is executed before a package gets removed from the system.
 8. `lfs_me_postremove()`: This function is executed after a package has been removed from the system.
 
+#### Dependencies:
+`dependencies` is an array that contains all the dependencies. A dependency can be a single package name or a package name, followed by a comparator followed by a version number. Valid comparators are `>`, `<`, `>=`, `<=` and `=`.
+
+Example:
+    depencencies=(
+        'linux>=3.2'
+        'bash'
+    )
+
 Command line usage
 --------------------
 `lfs-me mode file [options]`
@@ -79,6 +89,10 @@ Command line usage
 |      mode      |              parameter               |                                       description                                           |
 |:---------------|:-------------------------------------|---------------------------------------------------------------------------------------------|
 |`build`         |*PKGBUILD-file*                       |Build the package specified by the PKGBUILD                                                  |
+|`checkdeps`     |*PKGBUILD-file*                       |Check if all dependencies are met.                                                           |
+|`checkdeps`     |*package.pkg*                         |Check if all dependencies are met.                                                           |
+|`checkdeps`     |*package*                             |Check if all dependencies are met.                                                           |
+|`checkdeps`     |*package* *pkgver*                    |Check if all dependencies are met.                                                           |
 |`rebuild`       |*package.pkg*                         |Rebuild a package from an existing one.                                                      |
 |`rebuild`       |*pkgname*                             |Rebuild a package from an existing one.                                                      |
 |`rebuild`       |*pkgname* *pkgver*                    |Rebuild a package from an existing one.                                                      |
