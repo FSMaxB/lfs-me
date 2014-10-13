@@ -192,8 +192,15 @@ lfs_me_package() {
     [ "$build_dir" ] && [ "$fakeroot_dir" ] && rm -rf "${build_dir}/*" "${fakeroot_dir}/*"
 }
 
+lfs_me_index_versioncheck() {
+	[ -f "${index_dir}/version" ] && [ "$(cat "${index_dir}/version")" -eq 2 ] && return
+
+    [ $(find "${index_dir}" -maxdepth 1 -type d | grep -v -E "^${index_dir}\$" | wc -l) -eq 0 ] && echo 2 > "${index_dir}/version" || lfs_me_error "Index has wrong version. Version 2 expected!"
+}
+
 lfs_me_indexadd() {
     lfs_me_message "Adding to package index"
+	lfs_me_index_versioncheck
 	if $debug; then lfs_me_pause; fi
     index_entry="${index_dir}/${pkgname}/${pkgver}"
     mkdir -p "$index_entry"
@@ -202,6 +209,7 @@ lfs_me_indexadd() {
 
 lfs_me_indexremove() {
     lfs_me_message "Removing from package index"
+	lfs_me_index_versioncheck
 	if $debug; then lfs_me_pause; fi
     #get name of directory
     index_entry="${index_dir}/${pkgname}/${pkgver}"
@@ -227,6 +235,7 @@ lfs_me_load_package_files() {
         package_file=$2
         shift_value=1
     else
+		lfs_me_index_versioncheck
         pkgname="$2"
         pkgver="$3"
 
@@ -264,12 +273,13 @@ lfs_me_load_package_files() {
 
 #Get a list of every installed package
 lfs_me_get_installed_packages() {
+	lfs_me_index_versioncheck
 	[ -f "${temp_dir}/ALL_PACKAGES" ] && rm "${temp_dir}/ALL_PACKAGES"
 	touch "${temp_dir}/ALL_PACKAGES"
 
 	for package in $( ls "${index_dir}")
 	do
-		for version in $( ls "${index_dir}/${package}")
+		[ -d "${index_dir}/${package}" ] && for version in $( ls "${index_dir}/${package}")
 		do
 			echo -e "${package}/${version}" >> "${temp_dir}/ALL_PACKAGES"
 		done
@@ -278,6 +288,7 @@ lfs_me_get_installed_packages() {
 
 #Get a list of every installed file
 lfs_me_get_installed_files() {
+	lfs_me_index_versioncheck
 	#if $1 is false, the current package ( pkgname, pkgver ) is not included in the file list
 	list_current_package=$1
 
@@ -694,6 +705,7 @@ case "$mode" in
 		lfs_me_get_installed_packages
 		for package in $(cat "${temp_dir}/ALL_PACKAGES")
 		do
+			lfs_me_index_versioncheck
 			for file in $(cat "${index_dir}/${package}/"{FILES,DIRS,LINKS})
 			do
 				[ $(readlink -f "$file") == "$filename" ] && echo "${package/\//-}"
