@@ -106,10 +106,10 @@ lfs_me_sources() {
                         if ! wget "$file" -O "${sources_dir}/$(basename "$file")"
                         then
                             rm "${sources_dir}/$(basename "$file")"
-                            lfs_me_error "Download of '$file' failed!"
+                            lfs_me_error "Download of '$file' failed!" false
                         fi
                     else
-                        lfs_me_error "The source file '${sources_dir}/$file' doesn't exist!"
+                        lfs_me_error "The source file '${sources_dir}/$file' doesn't exist!" false
                     fi
                 fi
             done
@@ -126,7 +126,7 @@ lfs_me_sources() {
             sources_size=${#sources[@]}
             if [ $sources_size != ${#sha1sums[@]} ]
             then
-                lfs_me_error "The number of source files and SHA1 sums differ."
+                lfs_me_error "The number of source files and SHA1 sums differ." false
             fi
            
             #Now actually verify the checksums
@@ -138,7 +138,7 @@ lfs_me_sources() {
                 then
                     echo "${filename} OK"
                 else
-                    lfs_me_error "The SHA1 sum for '${filename}' doesn't match."
+                    lfs_me_error "The SHA1 sum for '${filename}' doesn't match." false
                 fi
             done
         else
@@ -161,9 +161,10 @@ lfs_me_pause() {
     read -n1 -r -p "Press any key to continue..."
 }
 
+#Print an error message and exit. If $2 is true it also displays the help output
 lfs_me_error() {
     echo -e "${color_bred}ERROR: ${1}${color_reset}" >&2
-    lfs_me_help
+	[ -z $2 ] || $2 && lfs_me_help
     lfs_me_cleanup
     exit 1
 }
@@ -202,7 +203,7 @@ lfs_me_package() {
 lfs_me_index_versioncheck() {
 	[ -f "${index_dir}/version" ] && [ "$(cat "${index_dir}/version")" -eq 2 ] && return
 
-    [ $(find "${index_dir}" -maxdepth 1 -type d | grep -v -E "^${index_dir}\$" | wc -l) -eq 0 ] && echo 2 > "${index_dir}/version" || lfs_me_error "Index has wrong version. Version 2 expected!"
+    [ $(find "${index_dir}" -maxdepth 1 -type d | grep -v -E "^${index_dir}\$" | wc -l) -eq 0 ] && echo 2 > "${index_dir}/version" || lfs_me_error "Index has wrong version. Version 2 expected!" false
 }
 
 lfs_me_indexadd() {
@@ -233,7 +234,7 @@ lfs_me_load_package_files() {
 	command_name="$1"
     if [[ -z $2 ]]
     then
-        lfs_me_error "Please specify a package for '${command_name}'"
+        lfs_me_error "Please specify a package for '${command_name}'" true
     fi
 
     #extract meta files
@@ -250,14 +251,14 @@ lfs_me_load_package_files() {
 		then
 			case "$(find "${index_dir}/${pkgname}" -type d | grep -v -E "^${index_dir}/${pkgname}\$" | wc -l)" in
 				0)
-					lfs_me_error "Can't find package '${pkgname}'"
+					lfs_me_error "Can't find package '${pkgname}'" false
 					;;
 				1)
 					index_entry="$(find "${index_dir}/${pkgname}" -type d | grep -v -E "^${index_dir}/${pkgname}\$")"
 					pkgver=$(basename "${index_entry}")
 					;;
 				*)
-					lfs_me_error "Package '${pkgname}' is ambiguos"
+					lfs_me_error "Package '${pkgname}' is ambiguos" false
 					;;
 			esac
 			shift_value=1
@@ -268,7 +269,7 @@ lfs_me_load_package_files() {
 
         if ! [ -d "$index_entry" ]
         then
-            lfs_me_error "Could not load package files!"
+            lfs_me_error "Could not load package files!" false
         fi
 
         cp "$index_entry"/{sha1sums,FILES,DIRS,LINKS,PKGBUILD} "$temp_dir"
@@ -315,7 +316,7 @@ lfs_me_get_installed_files() {
 
 lfs_me_load_pkgbuild() {
 	source "${temp_dir}/PKGBUILD"
-	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 2 ] || lfs_me_error "PKGBUILD has wrong version. Version 2 expected."
+	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 2 ] || lfs_me_error "PKGBUILD has wrong version. Version 2 expected." false
 }
 
 #Checks if the necessary dependencies are installed
@@ -362,13 +363,13 @@ lfs_me_check_dependencies() {
 					! $newer && dep_met=true || dep_met=false
 					;;
 				*)
-					lfs_me_error "Unknown comparator '$comparator'!"
+					lfs_me_error "Unknown comparator '$comparator'!" false
 			esac
 			$dep_met && echo -e "${dep}: FOUND (${installed[1]})"
 			! $dep_met && echo -e "${dep}: WRONG VERSION (${installed[1]})" && dependencies_met=false
 		fi
 	done
-	! $dependencies_met && lfs_me_error "Dependencies aren't met!"
+	! $dependencies_met && lfs_me_error "Dependencies aren't met!" false
 }
 
 #--------------------------------------------------------------------------------
@@ -442,7 +443,7 @@ do
         -b | --build-dir)
 			((i++))
             build_dir="${!i}"
-			[ -d "$build_dir" ] || lfs_me_error "Build directory '${build_dir}' not found!"
+			[ -d "$build_dir" ] || lfs_me_error "Build directory '${build_dir}' not found!" true
             ;;
         -D | --debug)
             debug=true
@@ -450,7 +451,7 @@ do
         -f | --fakeroot-dir)
 			((i++))
             fakeroot_dir="${!i}"
-			[ -d "$fakeroot_dir" ] || lfs_me_error "Fakeroot directory '${fakeroot_dir}' not found!"
+			[ -d "$fakeroot_dir" ] || lfs_me_error "Fakeroot directory '${fakeroot_dir}' not found!" true
             ;;
         -h | --help)
 			show_help=true
@@ -458,12 +459,12 @@ do
         -i | --index-dir)
             ((i++))
             index_dir="${!i}"
-			[ -d "$index_dir" ] || lfs_me_error "Package index '${index_dir}' not found!"
+			[ -d "$index_dir" ] || lfs_me_error "Package index '${index_dir}' not found!" true
             ;;
 		-l | --log-dir)
 			((i++))
 			log_dir="${!i}"
-			[ -d "$log_dir" ] || lfs_me_error "Log directory '${log_dir} not found!'"
+			[ -d "$log_dir" ] || lfs_me_error "Log directory '${log_dir} not found!'" true
 			;;
         --no-checks)
             run_checks=false
@@ -480,15 +481,15 @@ do
         -p | --prefix)
             ((i++))
             install_prefix="${!i}"
-			[ -d "$install_prefix" ] || lfs_me_error "Install prefix '${install_prefix}' not found!"
+			[ -d "$install_prefix" ] || lfs_me_error "Install prefix '${install_prefix}' not found!" true
             ;;
         -s | --sources)
             ((i++))
             sources_dir="${!i}"
-			[ -d "$sources_dir" ] || lfs_me_error "Sources dir '${sources_dir}' not found!"
+			[ -d "$sources_dir" ] || lfs_me_error "Sources dir '${sources_dir}' not found!" true
             ;;
         -*)
-            lfs_me_error "Unknown option '${!i}'"
+            lfs_me_error "Unknown option '${!i}'" true
             ;;
     esac
 done
@@ -519,14 +520,14 @@ while :
 do
     case "$1" in
         build)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             mode="build"
             pkgbuild_file="$2"
-			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
+			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!" true
             shift 2
             ;;
 		checkdeps)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
 			if file -b "$2" | grep -q '\stext\s' 
 			then
 				pkgbuild_file="$2"
@@ -542,32 +543,32 @@ do
 			exit 0
 			;;
 		rebuild)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
 			lfs_me_load_package_files "$@"
 			shift "$shift_value"
 			mode="build"
 			;;
         download)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             mode="download"
             pkgbuild_file="$2"
-			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
+			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!" true
             shift 2
             ;;
         indexadd)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="indexadd"
             ;;
         indexremove)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="indexremove"
             ;;
         indexlist)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             indexlist_search=""
             case $2 in
                 -*)
@@ -582,38 +583,38 @@ do
             shift
             ;;
 		list)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
 			lfs_me_load_package_files "$@"
 			shift "$shift_value"
 			mode=list
 			;;
         install)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="install"
             ;;
         remove)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="remove"
             ;;
         check)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             lfs_me_load_package_files "$@"
             shift "$shift_value"
             mode="check"
             ;;
         checksums)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             mode="checksums"
             pkgbuild_file="$2"
-			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!"
+			[ -f "$pkgbuild_file" ] || lfs_me_error "PKGBUILD file '${pkgbuild_file}' not found!" true
             shift 2
             ;;
 		owner)
-			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!"
+			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
 			filename=$(readlink -f "$2")
 			mode=owner
 			shift 2
@@ -690,7 +691,7 @@ case "$mode" in
 		lfs_me_check_dependencies
 
         #check and load package file
-		[ -z $package_file ] && lfs_me_error "You have to specify a package file."
+		[ -z $package_file ] && lfs_me_error "You have to specify a package file." true
 
 		lfs_me_message "Running preinstall"
 		if $debug; then lfs_me_pause; fi
@@ -801,7 +802,7 @@ case "$mode" in
 		done
 		;;
     *)
-        lfs_me_error "No action specified!"
+        lfs_me_error "No action specified!" true
         ;;
 esac
 
