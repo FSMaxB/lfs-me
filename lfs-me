@@ -16,6 +16,9 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+start_time_s=$(date +%s)
+start_time_ns=$(date +%N)
+
 #color codes
 color_red='\e[0;31m'      #Red
 color_green='\e[0;32m'    #Green
@@ -88,6 +91,7 @@ lfs_me_help() {
     echo -e "${color_bblue}    | --ignore-checksums  ${color_blue}Don't verify checksums"
     echo -e "${color_bblue} -p | --prefix            ${color_blue}Set install prefix"
     echo -e "${color_bblue} -s | --sources           ${color_blue}Set directory with source tarballs"
+	echo -e "${color_bblue} -t | --show-time         ${color_blue}Show execution time at the end."
     echo -e "${color_reset}"
 }
 
@@ -167,6 +171,7 @@ lfs_me_error() {
     echo -e "${color_bred}ERROR: ${1}${color_reset}" >&2
 	[ -z $2 ] || $2 && lfs_me_help
     lfs_me_cleanup
+	lfs_me_show_time
     exit 1
 }
 
@@ -373,6 +378,17 @@ lfs_me_check_dependencies() {
 	! $dependencies_met && lfs_me_error "Dependencies aren't met!" false
 }
 
+lfs_me_show_time() {
+	stop_time_s=$(date +%s)
+	stop_time_ns=$(date +%N)
+	start_time="${start_time_s}.${start_time_ns}"
+	stop_time="${stop_time_s}.${stop_time_ns}"
+	diff_time="$( echo $stop_time - $start_time | bc )"
+	diff_time_mins=$( echo $diff_time / 60 | bc)
+	diff_time_s=$( echo $diff_time % 60 | bc)
+	$show_time && echo "time: ${diff_time_mins}m $(echo $diff_time_s | awk '{printf "%.3f", $1}')s"
+}
+
 #--------------------------------------------------------------------------------
 #Those functions are supposed to be overloaded by the PKGBUILD
 lfs_me_prepare() {
@@ -428,6 +444,7 @@ install_prefix=""
 sources_dir="$current_dir"
 mode="undefined"
 show_help=false
+show_time=false
 
 #load configuration file
 [ -f ~/.lfs-me ] && source ~/.lfs-me
@@ -489,6 +506,9 @@ do
             sources_dir="${!i}"
 			[ -d "$sources_dir" ] || lfs_me_error "Sources dir '${sources_dir}' not found!" true
             ;;
+		-t | --show-time)
+			show_time=true
+			;;
         -*)
             lfs_me_error "Unknown option '${!i}'" true
             ;;
@@ -501,6 +521,7 @@ if $show_help
 then
 	lfs_me_help
 	lfs_me_cleanup
+	lfs_me_show_time
 	exit 0
 fi
 
@@ -541,6 +562,7 @@ do
 			fi
 			lfs_me_check_dependencies
 			lfs_me_cleanup
+			lfs_me_show_time
 			exit 0
 			;;
 		rebuild)
@@ -810,3 +832,4 @@ esac
 if $debug; then echo "You can find logfiles in '${log_dir}'!"; fi
 
 lfs_me_cleanup
+lfs_me_show_time

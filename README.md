@@ -131,6 +131,7 @@ Command line usage
 |         |`--ignore-checksums`|Don't check checksums                                |
 |`-p`     |`--prefix`          |Specify installation prefix                          |
 |`-s`     |`--sources`         |Specify directory where sources are stored           |
+|`-t`     |`--show-time`       |Show execution time at the end.                      |
 
 Configuration file
 ------------------
@@ -145,6 +146,7 @@ You can create the configuration file `~/.lfs-me` to set default values for vari
 * `download_sources`: *true* or *false*
 * `verify_checksums`: *true* or *false*
 * `show_color`:	*true* or *false*
+* `show_time`: *true* or *false*
 * `debug`: *true* or *false*
 
 Example:
