@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v2.0.1
+------
+* Show execution time with `-t` or `--show-time`
+* fix help output
+
 v2.0.0
 ------
 * **Support for dependencies**
