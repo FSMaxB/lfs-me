@@ -209,7 +209,7 @@ lfs_me_package() {
 lfs_me_index_versioncheck() {
 	[ -f "${index_dir}/version" ] && [ "$(cat "${index_dir}/version")" -eq 2 ] && return
 
-    [ $(find "${index_dir}" -maxdepth 1 -type d | grep -v -E "^${index_dir}\$" | wc -l) -eq 0 ] && echo 2 > "${index_dir}/version" || lfs_me_error "Index has wrong version. Version 2 expected!" false
+    [ $(find "${index_dir}" -maxdepth 1 -type d | grep -v "^${index_dir}\$" | wc -l) -eq 0 ] && echo 2 > "${index_dir}/version" || lfs_me_error "Index has wrong version. Version 2 expected!" false
 }
 
 lfs_me_indexadd() {
@@ -255,12 +255,12 @@ lfs_me_load_package_files() {
 
 		if [ -z $pkgver ] || [ "${pkgver:0:1}" == "-" ]
 		then
-			case "$(find "${index_dir}/${pkgname}" -type d | grep -v -E "^${index_dir}/${pkgname}\$" | wc -l)" in
+			case "$(find "${index_dir}/${pkgname}" -type d | grep -v "^${index_dir}/${pkgname}\$" | wc -l)" in
 				0)
 					lfs_me_error "Can't find package '${pkgname}'" false
 					;;
 				1)
-					index_entry="$(find "${index_dir}/${pkgname}" -type d | grep -v -E "^${index_dir}/${pkgname}\$")"
+					index_entry="$(find "${index_dir}/${pkgname}" -type d | grep -v "^${index_dir}/${pkgname}\$")"
 					pkgver=$(basename "${index_entry}")
 					;;
 				*)
@@ -335,7 +335,7 @@ lfs_me_check_dependencies() {
 		version=$(echo "$dep" | awk -F '[><]?=?' '/.*/ { print $2 }')
 		comparator=$(echo "$dep" | grep -o -E '[><]?=?')
 
-		IFS='/' read -a installed <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep -E "^$package/")
+		IFS='/' read -a installed <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/")
 
 		if [ -z "${installed[0]}" ]
 		then	#package not installed
