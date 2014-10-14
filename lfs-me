@@ -81,6 +81,7 @@ lfs_me_help() {
     echo -e "${color_bblue} -f | --fakeroot-dir      ${color_blue}Specify the fakeroot directory"
     echo -e "${color_bblue} -h | --help              ${color_blue}Show this help"
     echo -e "${color_bblue} -i | --index-dir         ${color_blue}Specify index directory"
+    echo -e "${color_bblue} -l | --log-dir           ${color_blue}Specify log directory"
     echo -e "${color_bblue}    | --no-checks         ${color_blue}Don't run checks"
     echo -e "${color_bblue}    | --no-color          ${color_blue}Disable color output"
     echo -e "${color_bblue}    | --no-downloads      ${color_blue}Don't download sources"
