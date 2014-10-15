@@ -670,10 +670,12 @@ case "$mode" in
 	    lfs_me_message "Preparing source"
 		if $debug; then lfs_me_pause; fi
 		lfs_me_prepare 2>&1 | tee "${log_dir}/last-prepare.log"
+		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
         
 	    lfs_me_message "Building"
 		if $debug; then lfs_me_pause; fi
 		lfs_me_build 2>&1 | tee "${log_dir}/last-build.log"
+		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
        
         if $run_checks
         then
@@ -685,6 +687,7 @@ case "$mode" in
 	    lfs_me_message "Installing to fakeroot"
 		if $debug; then lfs_me_pause; fi
 		lfs_me_install 2>&1 | tee "${log_dir}/last-install.log"
+		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
         
 	    lfs_me_message "Packaging"
 		if $debug; then lfs_me_pause; fi
