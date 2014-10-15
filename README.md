@@ -132,6 +132,7 @@ Command line usage
 |`-p`     |`--prefix`          |Specify installation prefix                          |
 |`-s`     |`--sources`         |Specify directory where sources are stored           |
 |`-t`     |`--show-time`       |Show execution time at the end.                      |
+|         |`--no-time`         |Don't show execution time at the end.                |
 
 Configuration file
 ------------------

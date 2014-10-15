@@ -92,6 +92,7 @@ lfs_me_help() {
     echo -e "${color_bblue} -p | --prefix            ${color_blue}Set install prefix"
     echo -e "${color_bblue} -s | --sources           ${color_blue}Set directory with source tarballs"
 	echo -e "${color_bblue} -t | --show-time         ${color_blue}Show execution time at the end."
+	echo -e "${color_bblue}    | --no-time           ${color_blue}Don't show execution time at the end."
     echo -e "${color_reset}"
 }
 
@@ -508,6 +509,9 @@ do
             ;;
 		-t | --show-time)
 			show_time=true
+			;;
+		--no-time)
+			show_time=false
 			;;
         -*)
             lfs_me_error "Unknown option '${!i}'" true
