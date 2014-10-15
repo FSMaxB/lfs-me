@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v2.1.0
+------
+* fix problem with logging
+* Therefore new PKGBUILD format version 3
+* now logging output of lfs_me_prepare
+* `--no-time` flag
+* fix a problem with special characters in package names
+
 v2.0.1
 ------
 * Show execution time with `-t` or `--show-time`
