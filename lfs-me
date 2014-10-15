@@ -93,6 +93,7 @@ lfs_me_help() {
     echo -e "${color_bblue} -s | --sources           ${color_blue}Set directory with source tarballs"
 	echo -e "${color_bblue} -t | --show-time         ${color_blue}Show execution time at the end."
 	echo -e "${color_bblue}    | --no-time           ${color_blue}Don't show execution time at the end."
+	echo -e "${color_bblue}    | --no-cert-check     ${color_blue}Don't check SSL certificates."
     echo -e "${color_reset}"
 }
 
@@ -109,7 +110,8 @@ lfs_me_sources() {
                 then
                     if echo $file | grep -qE '(https?|ftp)://.*'    #URL?
                     then
-                        if ! wget "$file" -O "${sources_dir}/$(basename "$file")"
+						echo "Wget-Flags: $wget_flags"
+                        if ! sh -c "wget ${file} -O ${sources_dir}/$(basename "$file") ${wget_flags}"
                         then
                             rm "${sources_dir}/$(basename "$file")"
                             lfs_me_error "Download of '$file' failed!" false
@@ -449,6 +451,7 @@ sources_dir="$current_dir"
 mode="undefined"
 show_help=false
 show_time=false
+wget_flags=""
 
 #load configuration file
 [ -f ~/.lfs-me ] && source ~/.lfs-me
@@ -515,6 +518,9 @@ do
 			;;
 		--no-time)
 			show_time=false
+			;;
+		--no-cert-check)
+			wget_flags="--no-check-certificate"
 			;;
         -*)
             lfs_me_error "Unknown option '${!i}'" true
