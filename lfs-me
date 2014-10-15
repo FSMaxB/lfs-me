@@ -666,7 +666,7 @@ case "$mode" in
 
 	    lfs_me_message "Preparing source"
 		if $debug; then lfs_me_pause; fi
-		lfs_me_prepare
+		lfs_me_prepare 2>&1 | tee "${log_dir}/last-prepare.log"
         
 	    lfs_me_message "Building"
 		if $debug; then lfs_me_pause; fi
