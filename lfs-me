@@ -323,7 +323,7 @@ lfs_me_get_installed_files() {
 
 lfs_me_load_pkgbuild() {
 	source "${temp_dir}/PKGBUILD"
-	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 2 ] || lfs_me_error "PKGBUILD has wrong version. Version 2 expected." false
+	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 3 ] || lfs_me_error "PKGBUILD has wrong version. Version 3 expected." false
 }
 
 #Checks if the necessary dependencies are installed
@@ -401,14 +401,17 @@ lfs_me_prepare() {
 }
 
 lfs_me_build() {
+	cd "${build_dir}/${pkgname}-${pkgver}"
 	make
 }
 
 lfs_me_check() {
-	make check 2>&1 | tee "${log_dir}/last-check.log"
+	cd "${build_dir}/${pkgname}-${pkgver}"
+	make check
 }
 
 lfs_me_install() {
+	cd "${build_dir}/${pkgname}-${pkgver}"
 	make DESTDIR="${fakeroot_dir}" install
 }
 
@@ -676,7 +679,7 @@ case "$mode" in
         then
             lfs_me_message "Running checks"
 			if $debug; then lfs_me_pause; fi
-            lfs_me_check
+            lfs_me_check 2>&1 | tee "${log_dir}/last-check.log"
         fi
         
 	    lfs_me_message "Installing to fakeroot"

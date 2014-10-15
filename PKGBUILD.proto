@@ -1,9 +1,9 @@
-pkgbuild_version=2
+pkgbuild_version=3
 pkgname=packagename
 pkgver=1.1.1
 
 dependencies=(
-	'packe'
+	'package'
 	'otherpackage>2'
 )
 sources=(
@@ -12,7 +12,6 @@ sources=(
 
 sha1sums=(
 	'046fb3a32f7c2b21ae30d7f5566b112ca577f1dc'
-	'9885f59aa51fa20e67c4c8454f2a931d7722c73a'
 )
 
 # All the following functions are already provided and you only need them if they differ
@@ -25,14 +24,17 @@ lfs_me_prepare() {
 }
 
 lfs_me_build() {
+	cd "${build_dir}/${pkgname}-${pkgver}"
 	make
 }
 
 lfs_me_check() {
-	make check 2>&1 | tee "${log_dir}/last-check.log"
+	cd "${build_dir}/${pkgname}-${pkgver}"
+	make check
 }
 
 lfs_me_install() {
+	cd "${build_dir}/${pkgname}-${pkgver}"
 	make DESTDIR="$fakeroot_dir" install
 }
 
