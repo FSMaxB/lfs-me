@@ -325,15 +325,21 @@ lfs_me_get_installed_files() {
 	#if $1 is false, the current package ( pkgname, pkgver ) is not included in the file list
 	list_current_package=$1
 
+	[ -f "${temp_dir}/EVERYTHING" ] && rm "${temp_dir}/EVERYTHING"
 	[ -f "${temp_dir}/ALL_FILES" ] && rm "${temp_dir}/ALL_FILES"
-	touch "${temp_dir}/ALL_FILES"
+	[ -f "${temp_dir}/ALL_DIRS" ] && rm "${temp_dir}/ALL_DIRS"
+	[ -f "${temp_dir}/ALL_LINKS" ] && rm "${temp_dir}/ALL_LINKS"
+	touch "${temp_dir}/"{EVERYTHING,ALL_FILES,ALL_DIRS,ALL_LINKS}
 
 	lfs_me_get_installed_packages
 	for package in $( cat "${temp_dir}/ALL_PACKAGES" )
 	do
 		if $list_current_package || [ "${pkgname}/${pkgver}" != "$package" ]
 		then
-			cat "${index_dir}/${package}/"{FILES,DIRS,LINKS} >> "${temp_dir}/ALL_FILES"
+			cat "${index_dir}/${package}/FILES" >> "${temp_dir}/ALL_FILES"
+			cat "${index_dir}/${package}/DIRS" >> "${temp_dir}/ALL_DIRS"
+			cat "${index_dir}/${package}/LINKS" >> "${temp_dir}/ALL_LINKS"
+			cat "${index_dir}/${package}/"{FILES,DIRS,LINKS} >> "${temp_dir}/EVERYTHING"
 		fi
 	done
 	unset list_current_package
@@ -464,7 +470,7 @@ lfs_me_remove_package() {
 	cd "$temp_dir"
 	for file in $( cat FILES )
 	do
-		if grep -q "^${file}$" "${temp_dir}/ALL_FILES"
+		if grep -q "^${file}$" "${temp_dir}/EVERYTHING"
 		then
 			echo "Didn't remove file '${install_prefix}/${file}', still needed."
 		else
@@ -473,7 +479,7 @@ lfs_me_remove_package() {
 	done
 	for directory in $( sort -r DIRS )  #Sort in order to remove subdirs first
 	do
-		if grep -q "^${directory}$" "${temp_dir}/ALL_FILES"
+		if grep -q "^${directory}$" "${temp_dir}/EVERYTHING"
 		then
 			echo "Didn't remove directory '${install_prefix}/${directory}', still needed."
 		else
