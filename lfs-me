@@ -735,6 +735,7 @@ case "$mode" in
 		lfs_me_message "Running preinstall"
 		if $debug; then lfs_me_pause; fi
 		lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
+		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
 		cd "$current_dir"
 
         #extract files
@@ -766,6 +767,7 @@ case "$mode" in
 		lfs_me_message "Running preremove"
 		if $debug; then lfs_me_pause; fi
 		lfs_me_preremove 2>&1 | tee "${log_dir}/last-preremove.log"
+		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
 
         #deleting files
         lfs_me_message "Deleting"
