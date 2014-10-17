@@ -435,19 +435,9 @@ lfs_me_show_time() {
 	$show_time && echo "time: ${diff_time_mins}m $(echo $diff_time_s | awk '{printf "%.3f", $1}')s"
 }
 
-#install a package ( doesn't check dependencies and doesn't add it to the index!)
+#install a package ( doesn't check dependencies, doesn't add it to the index and doesn't run lfs_me_preinstall and lfs_me_postinstall)
 lfs_me_install_package() {
 	package_file="$1"
-	output_directory="$2"
-
-	#check and load package file
-	[ -z $package_file ] && lfs_me_error "You have to specify a package file." true
-
-	lfs_me_message "Running preinstall"
-	if $debug; then lfs_me_pause; fi
-	lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
-	[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
-	cd "$output_directory"
 
 	#extract files
 	lfs_me_message "Extracting package"
@@ -460,11 +450,6 @@ lfs_me_install_package() {
 	if $debug; then lfs_me_pause; fi
 	rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${log_dir}/last-install.log"
 
-	#postinstall script
-	lfs_me_message "Running postinstall"
-	cd "$temp_dir"
-	if $debug; then lfs_me_pause; fi
-	lfs_me_postinstall 2>&1 | tee "${log_dir}/last-postinstall.log"
 }
 
 #removes a package (doesn't remove it from the index and doesn't run lfs_me_preremove and lfs_me_postremove )
@@ -847,9 +832,20 @@ case "$mode" in
 		lfs_me_message "Checking dependencies"
 		lfs_me_check_dependencies
 
+		lfs_me_message "Running preinstall"
+		if $debug; then lfs_me_pause; fi
+		lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
+		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+
 		#install the package
-		lfs_me_install_package "$package_file" "$current_dir"
+		lfs_me_install_package "$package_file"
 		
+		#postinstall script
+		lfs_me_message "Running postinstall"
+		cd "$temp_dir"
+		if $debug; then lfs_me_pause; fi
+		lfs_me_postinstall 2>&1 | tee "${log_dir}/last-postinstall.log"
+
         #add to index
         lfs_me_indexadd
         ;;
