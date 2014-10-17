@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v2.1.1
+------
+* Ignore SSL certificates with `--no-cert-check`
+* clenup
+* fix dependency check
+
 v2.1.0
 ------
 * fix problem with logging
