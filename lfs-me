@@ -468,7 +468,7 @@ lfs_me_remove_package() {
 	lfs_me_message "Deleting"
 	if $debug; then lfs_me_pause; fi
 	cd "$temp_dir"
-	for file in $( cat FILES )
+	for file in $( cat "${temp_dir}/FILES" )
 	do
 		if grep -q "^${file}$" "${temp_dir}/EVERYTHING"
 		then
@@ -477,7 +477,7 @@ lfs_me_remove_package() {
 			rm -f "${install_prefix}/${file}"
 		fi
 	done
-	for directory in $( sort -r DIRS )  #Sort in order to remove subdirs first
+	for directory in $( sort -r "${temp_dir}/DIRS" )  #Sort in order to remove subdirs first
 	do
 		if grep -q "^${directory}$" "${temp_dir}/EVERYTHING"
 		then
@@ -486,7 +486,7 @@ lfs_me_remove_package() {
 			rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
 		fi
 	done
-	for link in $( cat LINKS )
+	for link in $( cat "${temp_dir}/LINKS" )
 	do
 		#only remove broken symlinks
 		if test -r "${install_prefix}/${link}"
