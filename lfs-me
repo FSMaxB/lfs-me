@@ -333,11 +333,12 @@ lfs_me_check_dependencies() {
 	dependencies_met=true
 	for dep in "${dependencies[@]}"
 	do
-		package=$(echo "$dep" | awk -F '[><]?=?' '/.*/ { print $1 }')
-		version=$(echo "$dep" | awk -F '[><]?=?' '/.*/ { print $2 }')
+		package=$(echo "$dep" | awk -F '[><]?=?' '{ print $1 }')
+		version=$(echo "$dep" | awk -F '[><]?=?' '{ print $2 }')
 		comparator=$(echo "$dep" | grep -o -E '[><]?=?')
 
 		IFS='/' read -a installed <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/")
+		IFS='/' read -a installed_versions <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/" | awk -F '/' '{print $2}')
 
 		if [ -z "${installed[0]}" ]
 		then	#package not installed
@@ -348,33 +349,39 @@ lfs_me_check_dependencies() {
 			#dependency is single package name without version requirement
 			echo -e "${package}: FOUND"
 		else
-			#use sort's version sorting to check which is newer
-			older=true
-			echo -e "$version\n${installed[1]}" | sort -VC && older=false
-			newer=true
-			echo -e "${installed[1]}\n$version" | sort -VC && newer=false
+			#loop through all versions of the installed package
+			#There might be multiple versions in case of python for example (2.7 and 3)
+			for installed_version in ${installed_versions[@]}
+			do
+				#use sort's version sorting to check which is newer
+				older=true
+				echo -e "$version\n${installed_version}" | sort -VC && older=false
+				newer=true
+				echo -e "${installed_version}\n$version" | sort -VC && newer=false
 
-			case "$comparator" in
-				">")
-					$newer && dep_met=true || dep_met=false
-					;;
-				"<")
-					$older && dep_met=true || dep_met=false
-					;;
-				"=")
-					! $newer && ! $older && dep_met=true || dep_met=false
-					;;
-				">=")
-					! $older && dep_met=true || dep_met=false
-					;;
-				"<=")
-					! $newer && dep_met=true || dep_met=false
-					;;
-				*)
-					lfs_me_error "Unknown comparator '$comparator'!" false
-			esac
-			$dep_met && echo -e "${dep}: FOUND (${installed[1]})"
-			! $dep_met && echo -e "${dep}: WRONG VERSION (${installed[1]})" && dependencies_met=false
+				case "$comparator" in
+					">")
+						$newer && dep_met=true || dep_met=false
+						;;
+					"<")
+						$older && dep_met=true || dep_met=false
+						;;
+					"=")
+						! $newer && ! $older && dep_met=true || dep_met=false
+						;;
+					">=")
+						! $older && dep_met=true || dep_met=false
+						;;
+					"<=")
+						! $newer && dep_met=true || dep_met=false
+						;;
+					*)
+						lfs_me_error "Unknown comparator '$comparator'!" false
+				esac
+				$dep_met && break
+			done
+			$dep_met && echo -e "${dep}: FOUND (${installed_version})"
+			! $dep_met && echo -e "${dep}: WRONG VERSION(S) (${installed_versions[@]})" && dependencies_met=false
 		fi
 	done
 	! $dependencies_met && lfs_me_error "Dependencies aren't met!" false
