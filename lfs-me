@@ -562,7 +562,7 @@ do
             ;;
 		checkdeps)
 			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
-			if file -b "$2" | grep -q '\stext\s' 
+			if file -b "$2" | grep -q '\stext'
 			then
 				pkgbuild_file="$2"
 				cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
