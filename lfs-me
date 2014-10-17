@@ -348,19 +348,19 @@ lfs_me_check_dependencies() {
 		then	#package not installed
 			if $conflict
 			then
-				echo -e "!${package}: NOT INSTALLED"
+				echo -e "${color_green}!${package}: NOT INSTALLED${color_reset}"
 			else
 				dependencies_met=false
-				echo -e "${package}: MISSING"
+				echo -e "${color_red}${package}: MISSING${color_reset}"
 			fi
 		elif [ -z "$version" ]
 		then #dependency is single package name without version requirement
 			if $conflict
 			then
 				dependencies_met=false
-				echo -e "!${package}: CONFLICT"
+				echo -e "${color_red}!${package}: CONFLICT${color_reset}"
 			else
-				echo -e "${package}: FOUND"
+				echo -e "${color_green}${package}: FOUND${color_reset}"
 			fi
 		else
 			#loop through all versions of the installed package
@@ -396,11 +396,11 @@ lfs_me_check_dependencies() {
 			done
 			if $conflict
 			then
-				$dep_met && echo -e "${dep}: CONFLICT (${installed_version})" && dependencies_met=false
-				! $dep_met && echo -e "${dep}: NOT INSTALLED"
+				$dep_met && echo -e "${color_red}${dep}: CONFLICT (${installed_version})${color_reset}" && dependencies_met=false
+				! $dep_met && echo -e "${color_green}${dep}: NOT INSTALLED${color_reset}"
 			else
-				$dep_met && echo -e "${dep}: FOUND (${installed_version})"
-				! $dep_met && echo -e "${dep}: WRONG VERSION(S) (${installed_versions[@]})" && dependencies_met=false
+				$dep_met && echo -e "${color_green}${dep}: FOUND (${installed_version})${color_reset}"
+				! $dep_met && echo -e "${color_red}${dep}: WRONG VERSION(S) (${installed_versions[@]})${color_reset}" && dependencies_met=false
 			fi
 		fi
 	done
