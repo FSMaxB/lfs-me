@@ -146,15 +146,15 @@ lfs_me_sources() {
             fi
            
             #Now actually verify the checksums
-            for url in ${sources[@]}
+			for i in $(seq 0 $((${#sources[@]} - 1)))
             do
 				#get filename
-				if echo "$url" | grep -qE "::(https?|ftp)://"
+				if echo "${sources[$i]}" | grep -qE "::(https?|ftp)://"
 				then
-					filename=$(echo "$url" | awk -F '::' '{print $1}')
-					url="$(echo "$url" | sed 's/^.*:://')"
+					filename=$(echo "${source[$i]}" | awk -F '::' '{print $1}')
+					url="$(echo "${sources[$i]}" | sed 's/^.*:://')"
 				else
-					filename=$(basename "$url")
+					filename=$(basename "${sources[$i]}")
 				fi
 
                 sum=$(sha1sum "${sources_dir}/${filename}" | grep -o -E '^[0-9a-f]{40}')
