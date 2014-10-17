@@ -110,7 +110,6 @@ lfs_me_sources() {
                 then
                     if echo $file | grep -qE '(https?|ftp)://.*'    #URL?
                     then
-						echo "Wget-Flags: $wget_flags"
                         if ! sh -c "wget ${file} -O ${sources_dir}/$(basename "$file") ${wget_flags}"
                         then
                             rm "${sources_dir}/$(basename "$file")"
