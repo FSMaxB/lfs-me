@@ -333,21 +333,35 @@ lfs_me_check_dependencies() {
 	dependencies_met=true
 	for dep in "${dependencies[@]}"
 	do
+		conflict=false
 		package=$(echo "$dep" | awk -F '[><]?=?' '{ print $1 }')
 		version=$(echo "$dep" | awk -F '[><]?=?' '{ print $2 }')
 		comparator=$(echo "$dep" | grep -o -E '[><]?=?')
+
+		#if dependency start with '!', it's a conflict instead of a dependency
+		[ "${package:0:1}" == '!' ] && package="${package:1}" && conflict=true
 
 		IFS='/' read -a installed <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/")
 		IFS='/' read -a installed_versions <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/" | awk -F '/' '{print $2}')
 
 		if [ -z "${installed[0]}" ]
 		then	#package not installed
-			dependencies_met=false
-			echo -e "${package}: MISSING"
+			if $conflict
+			then
+				echo -e "!${package}: NOT INSTALLED"
+			else
+				dependencies_met=false
+				echo -e "${package}: MISSING"
+			fi
 		elif [ -z "$version" ]
-		then
-			#dependency is single package name without version requirement
-			echo -e "${package}: FOUND"
+		then #dependency is single package name without version requirement
+			if $conflict
+			then
+				dependencies_met=false
+				echo -e "!${package}: CONFLICT"
+			else
+				echo -e "${package}: FOUND"
+			fi
 		else
 			#loop through all versions of the installed package
 			#There might be multiple versions in case of python for example (2.7 and 3)
@@ -380,8 +394,14 @@ lfs_me_check_dependencies() {
 				esac
 				$dep_met && break
 			done
-			$dep_met && echo -e "${dep}: FOUND (${installed_version})"
-			! $dep_met && echo -e "${dep}: WRONG VERSION(S) (${installed_versions[@]})" && dependencies_met=false
+			if $conflict
+			then
+				$dep_met && echo -e "${dep}: CONFLICT (${installed_version})" && dependencies_met=false
+				! $dep_met && echo -e "${dep}: NOT INSTALLED"
+			else
+				$dep_met && echo -e "${dep}: FOUND (${installed_version})"
+				! $dep_met && echo -e "${dep}: WRONG VERSION(S) (${installed_versions[@]})" && dependencies_met=false
+			fi
 		fi
 	done
 	! $dependencies_met && lfs_me_error "Dependencies aren't met!" false
