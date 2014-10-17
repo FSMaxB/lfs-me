@@ -498,6 +498,32 @@ lfs_me_remove_package() {
 	done
 }
 
+#check for conflicting files
+lfs_me_check_conflicts() {
+	lfs_me_get_installed_files
+
+	#prevent existing files from getting overwritten by anything at all
+	for file in $(cat "${temp_dir}/ALL_FILES")
+	do
+		if grep -q "^${file}" "${temp_dir}/"{FILES,DIRS,LINKS}
+		then	#file already belongs to another package
+			lfs_me_error "Conflicting file! '${file}' already belongs to another package!" false
+		fi
+	done
+
+	#prevent everything in the package from overwriting any existing file
+	for file in $(cat "${temp_dir}/"{FILES,DIRS,LINKS})
+	do
+		if [ -f "${install_prefix}/${file}" ]
+		then
+			lfs_me_error "Conflicting file! '${install_prefix}/${file}' already exists in the filesystem!" false
+		fi
+
+	done
+
+	#TODO I have no idea right now how to handle links and directories appropriately
+}
+
 #--------------------------------------------------------------------------------
 #Those functions are supposed to be overloaded by the PKGBUILD
 lfs_me_prepare() {
@@ -837,6 +863,9 @@ case "$mode" in
 	install)
 		lfs_me_message "Checking dependencies"
 		lfs_me_check_dependencies
+
+		lfs_me_message "Checking for conflicting files"
+		lfs_me_check_conflicts
 
 		lfs_me_message "Running preinstall"
 		if $debug; then lfs_me_pause; fi
