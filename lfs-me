@@ -661,6 +661,9 @@ do
 			mode=owner
 			shift 2
 			;;
+		-*)
+			shift
+			;;
         *)
             break
             ;;
