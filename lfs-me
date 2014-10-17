@@ -467,6 +467,46 @@ lfs_me_install_package() {
 	lfs_me_postinstall 2>&1 | tee "${log_dir}/last-postinstall.log"
 }
 
+#removes a package (doesn't remove it from the index and doesn't run lfs_me_preremove and lfs_me_postremove )
+lfs_me_remove_package() {
+	lfs_me_message "Getting list of installed files"
+	if $debug; then lfs_me_pause; fi
+	lfs_me_get_installed_files false    #false: don't include files from the current package
+
+	#deleting files
+	lfs_me_message "Deleting"
+	if $debug; then lfs_me_pause; fi
+	cd "$temp_dir"
+	for file in $( cat FILES )
+	do
+		if grep -q "^${file}$" "${temp_dir}/ALL_FILES"
+		then
+			echo "Didn't remove file '${install_prefix}/${file}', still needed."
+		else
+			rm -f "${install_prefix}/${file}"
+		fi
+	done
+	for directory in $( sort -r DIRS )  #Sort in order to remove subdirs first
+	do
+		if grep -q "^${directory}$" "${temp_dir}/ALL_FILES"
+		then
+			echo "Didn't remove directory '${install_prefix}/${directory}', still needed."
+		else
+			rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
+		fi
+	done
+	for link in $( cat LINKS )
+	do
+		#only remove broken symlinks
+		if test -r "${install_prefix}/${link}"
+		then
+			echo "Didn't remove link '${install_prefix}/${link}', still needed."
+		else
+			rm -f "${install_prefix}/${link}"
+		fi
+	done
+}
+
 #--------------------------------------------------------------------------------
 #Those functions are supposed to be overloaded by the PKGBUILD
 lfs_me_prepare() {
@@ -815,47 +855,10 @@ case "$mode" in
         ;;
 
 	remove)
-        lfs_me_message "Getting list of installed files"
-		if $debug; then lfs_me_pause; fi
-        lfs_me_get_installed_files false    #false: don't include files from the current package
-
 		lfs_me_message "Running preremove"
 		if $debug; then lfs_me_pause; fi
 		lfs_me_preremove 2>&1 | tee "${log_dir}/last-preremove.log"
 		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
-
-        #deleting files
-        lfs_me_message "Deleting"
-		if $debug; then lfs_me_pause; fi
-	    cd "$temp_dir"
-        for file in $( cat FILES )
-        do
-			if grep -q "^${file}$" "${temp_dir}/ALL_FILES"
-			then
-				echo "Didn't remove file '${install_prefix}/${file}', still needed."
-			else
-				rm -f "${install_prefix}/${file}"
-			fi
-        done
-        for directory in $( sort -r DIRS )  #Sort in order to remove subdirs first
-        do
-			if grep -q "^${directory}$" "${temp_dir}/ALL_FILES"
-			then
-				echo "Didn't remove directory '${install_prefix}/${directory}', still needed."
-			else
-				rmdir --ignore-fail-on-non-empty "${install_prefix}/${directory}"
-			fi
-        done
-        for link in $( cat LINKS )
-        do
-			#only remove broken symlinks
-			if test -r "${install_prefix}/${link}"
-			then
-				echo "Didn't remove link '${install_prefix}/${link}', still needed."
-			else
-				rm -f "${install_prefix}/${link}"
-			fi
-        done
 
         #postremove script
         lfs_me_message "Running postremove"
