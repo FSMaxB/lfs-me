@@ -73,12 +73,13 @@ The functions are executed in the following order:
 8. `lfs_me_postremove()`: This function is executed after a package has been removed from the system.
 
 #### Dependencies:
-`dependencies` is an array that contains all the dependencies. A dependency can be a single package name or a package name, followed by a comparator followed by a version number. Valid comparators are `>`, `<`, `>=`, `<=` and `=`.
+`dependencies` is an array that contains all the dependencies. A dependency can be a single package name or a package name, followed by a comparator followed by a version number. Valid comparators are `>`, `<`, `>=`, `<=` and `=`. Those dependencies can be inversed to be conflicts by preceding them with `!`. Most packages should be in conflict with themselves for example, so that you can't install multiple conflicting versions in parallel.
 
 Example:
     depencencies=(
         'linux>=3.2'
         'bash'
+		'!tmux'	#in conflict with tmux
     )
 
 Command line usage
