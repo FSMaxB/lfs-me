@@ -103,20 +103,29 @@ lfs_me_sources() {
         #Download missing files
         if [ ! -z ${sources+x} ]
         then
-            for file in ${sources[@]}
+            for url in ${sources[@]}
             do
+				#get filename
+				if echo "$url" | grep -qE "::(https?|ftp)://"
+				then
+					filename=$(echo "$url" | awk -F '::' '{print $1}')
+					url="$(echo "$url" | sed 's/^.*:://')"
+				else
+					filename=$(basename "$url")
+				fi
+
                 # Does the file exist?
-                if [ ! -f "${sources_dir}/$(basename "$file")" ]
+                if [ ! -f "${sources_dir}/${filename}" ]
                 then
-                    if echo $file | grep -qE '(https?|ftp)://.*'    #URL?
+                    if echo $url | grep -qE '(https?|ftp)://.*'    #URL?
                     then
-                        if ! sh -c "wget ${file} -O ${sources_dir}/$(basename "$file") ${wget_flags}"
+                        if ! sh -c "wget '${url}' -O '${sources_dir}/${filename}' ${wget_flags}"
                         then
-                            rm "${sources_dir}/$(basename "$file")"
-                            lfs_me_error "Download of '$file' failed!" false
+                            rm "${sources_dir}/${filename}"
+                            lfs_me_error "Download of '$filename' failed!" false
                         fi
                     else
-                        lfs_me_error "The source file '${sources_dir}/$file' doesn't exist!" false
+                        lfs_me_error "The source '${url}' doesn't exist!" false
                     fi
                 fi
             done
@@ -137,9 +146,17 @@ lfs_me_sources() {
             fi
            
             #Now actually verify the checksums
-            for i in `seq 0 $(($sources_size - 1))`
+            for url in ${sources[@]}
             do
-				filename=$(basename "${sources[$i]}")
+				#get filename
+				if echo "$url" | grep -qE "::(https?|ftp)://"
+				then
+					filename=$(echo "$url" | awk -F '::' '{print $1}')
+					url="$(echo "$url" | sed 's/^.*:://')"
+				else
+					filename=$(basename "$url")
+				fi
+
                 sum=$(sha1sum "${sources_dir}/${filename}" | grep -o -E '^[0-9a-f]{40}')
                 if [[ $sum == "${sha1sums[$i]}" ]]
                 then
