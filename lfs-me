@@ -531,6 +531,14 @@ lfs_me_check_conflicts() {
 	#TODO I have no idea right now how to handle links and directories appropriately
 }
 
+#backup config files from backup array in the PKGBUILD
+lfs_me_backup() {
+	for file in ${backup[@]}
+	do
+		[ -f "${install_prefix}/${file}" ] && mv "${install_prefix}/${file}" "${install_prefix}/$(dirname "$file")/$(basename "$file").lfs-me-backup" && echo "Backed up '${install_prefix}/${file}' to '${install_prefix}/${file}.lfs-me-backup'"
+	done
+}
+
 #--------------------------------------------------------------------------------
 #Those functions are supposed to be overloaded by the PKGBUILD
 lfs_me_prepare() {
@@ -879,6 +887,12 @@ case "$mode" in
 		if $debug; then lfs_me_pause; fi
 		lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
 		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+
+		if [ ! -z "$backup" ]
+		then
+			lfs_me_message "Backing up config files"
+			lfs_me_backup
+		fi
 
 		#install the package
 		lfs_me_install_package "$package_file"
