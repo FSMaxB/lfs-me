@@ -57,6 +57,8 @@ lfs_me_help() {
     echo -e "${color_blue}${0} ${color_bblue}mode [Options]${color_reset}\n"
 
     echo -e "${color_bblue}Modes:"
+    echo -e "${color_bblue} backuplist   ${color_blue}                         List all backup files."
+    echo -e "${color_bblue} backupmerge  ${color_blue}                         Find all backup files and ask how to merge them."
     echo -e "${color_bblue} build        ${color_blue}PKGBUILD-file            Build the package specified by PKGBUILD-file"
     echo -e "${color_bblue} checkdeps    ${color_blue}PKGBUILD-file            Check if all dependencies are met."
     echo -e "${color_bblue} checkdeps    ${color_blue}package.pkg              Check if all dependencies are met."
@@ -539,6 +541,44 @@ lfs_me_backup() {
 	done
 }
 
+#List and merge backup files
+lfs_me_backuplist() {
+	do_merge="$1"	#true: merge, false: don't merge
+	for file in $(find "$install_prefix/" -type f -name '*.lfs-me-backup' 2> /dev/null)
+	do
+		if $do_merge
+		then
+			if [ -f "${file/.lfs-me-backup/}" ]
+			then	#does the original still exist
+				echo "Backup file for '${file/.lfs-me-backup/}'"
+				echo "> (m)erge, (s)kip, (r)emove backup, (o)verwrite new"
+				read -n1 choice
+				case "$choice" in
+					m)
+						$merge_tool "$file" "${file/.lfs-me-backup/}"
+						rm -v "$file"
+						;;
+					r)
+						rm -v "$file"
+						;;
+					o)
+						mv -v "$file" "${file/.lfs-me-backup/}"
+						;;
+					s|*)
+						echo Skipping
+						;;
+				esac
+			else
+				echo "Backup file for '${file/.lfs-me-backup/}'"
+				mv -v "${file}" "${file/.lfs-me-backup/}"
+				lfs_me_pause
+			fi
+		else
+			echo "Backup file for '${file/.lfs-me-backup/}'"
+		fi
+	done
+}
+
 #--------------------------------------------------------------------------------
 #Those functions are supposed to be overloaded by the PKGBUILD
 lfs_me_prepare() {
@@ -599,6 +639,7 @@ mode="undefined"
 show_help=false
 show_time=false
 wget_flags=""
+merge_tool="vimdiff"
 
 #load configuration file
 [ -f ~/.lfs-me ] && source ~/.lfs-me
@@ -702,6 +743,18 @@ log_dir=$(readlink -f "$log_dir")
 while :
 do
     case "$1" in
+		backuplist)
+			lfs_me_backuplist false
+			lfs_me_cleanup
+			lfs_me_show_time
+			exit 0
+			;;
+		backupmerge)
+			lfs_me_backuplist true
+			lfs_me_cleanup
+			lfs_me_show_time
+			exit 0
+			;;
         build)
 			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             mode="build"

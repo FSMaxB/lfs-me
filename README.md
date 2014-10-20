@@ -90,6 +90,8 @@ Command line usage
 #### Modes
 |      mode      |              parameter               |                                       description                                           |
 |:---------------|:-------------------------------------|---------------------------------------------------------------------------------------------|
+|`backuplist`    |                                      |List all backup files.                                                                       |
+|`backupmerge`   |                                      |Find all bakup files and ask how to merge them.                                              |
 |`build`         |*PKGBUILD-file*                       |Build the package specified by the PKGBUILD                                                  |
 |`checkdeps`     |*PKGBUILD-file*                       |Check if all dependencies are met.                                                           |
 |`checkdeps`     |*package.pkg*                         |Check if all dependencies are met.                                                           |
@@ -152,6 +154,7 @@ You can create the configuration file `~/.lfs-me` to set default values for vari
 * `show_color`:	*true* or *false*
 * `show_time`: *true* or *false*
 * `debug`: *true* or *false*
+* `merge_tool`: Which mergetool to use for merging backups. Default is `vimdiff`
 
 Example:
 
