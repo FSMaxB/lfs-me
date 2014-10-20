@@ -6,6 +6,7 @@ backup=(
     '/etc/config.file'
 )
 dependencies=(
+    "!$pkgname"
 	'package'
 	'otherpackage>2'
 )
