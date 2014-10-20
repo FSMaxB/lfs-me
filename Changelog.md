@@ -1,6 +1,18 @@
 Changelog
 =========
 
+v3.0.0
+------
+* PKGBUILD format version 4
+* Download to other filenames than in the URL.
+* Check for file conflicts before installing.
+* Backup config files before installing/removing
+* New commands `backuplist` and `backupmerge`
+* New example files
+* Packages should now be in conflict with themselves
+* several fixes
+* some cleanup
+
 v2.1.1
 ------
 * Ignore SSL certificates with `--no-cert-check`
