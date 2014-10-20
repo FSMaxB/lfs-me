@@ -13,22 +13,22 @@ lfs_me_install() {
 	make DESTDIR="$fakeroot_dir" install
 
     #don't overwrite info pages
-    rm "${fakeroot_dir}/tools/share/info/dir"
+    rm "${fakeroot_dir}/usr/share/info/dir"
 }
 
 lfs_me_postinstall() {
     echo "Adding info pages"
     for info_page in ${_info_pages[@]}
     do
-        install-info "/tools/share/info/${info_page}" /tools/share/info/dir 2> /dev/null
+        install-info "/usr/share/info/${info_page}" /tools/share/info/dir 2> /dev/null
     done
 }
 
-lfs_me_postremove() {
+lfs_me_preremove() {
     echo "Removing info pages"
     for info_page in ${_info_pages[@]}
     do
-        install-info --delete "/tools/share/info/${info_page}" /tools/share/info/dir 2> /dev/null
+        install-info --delete "/usr/share/info/${info_page}" /tools/share/info/dir 2> /dev/null
     done
 }
 
