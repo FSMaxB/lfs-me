@@ -117,10 +117,10 @@ lfs_me_sources() {
 				#get filename
 				if echo "$url" | grep -qE "::(https?|ftp)://"
 				then
-					filename=$(echo "$url" | awk -F '::' '{print $1}')
+					filename="$(echo "$url" | awk -F '::' '{print $1}')"
 					url="$(echo "$url" | sed 's/^.*:://')"
 				else
-					filename=$(basename "$url")
+					filename="$(basename "$url")"
 				fi
 
                 # Does the file exist?
@@ -160,13 +160,13 @@ lfs_me_sources() {
 				#get filename
 				if echo "${sources[$i]}" | grep -qE "::(https?|ftp)://"
 				then
-					filename=$(echo "${source[$i]}" | awk -F '::' '{print $1}')
+					filename="$(echo "${source[$i]}" | awk -F '::' '{print $1}')"
 					url="$(echo "${sources[$i]}" | sed 's/^.*:://')"
 				else
-					filename=$(basename "${sources[$i]}")
+					filename="$(basename "${sources[$i]}")"
 				fi
 
-                sum=$(sha1sum "${sources_dir}/${filename}" | grep -o -E '^[0-9a-f]{40}')
+                sum="$(sha1sum "${sources_dir}/${filename}" | grep -o -E '^[0-9a-f]{40}')"
                 if [[ $sum == "${sha1sums[$i]}" ]]
                 then
                     echo "${filename} OK"
@@ -237,7 +237,7 @@ lfs_me_package() {
 lfs_me_index_versioncheck() {
 	[ -f "${index_dir}/version" ] && [ "$(cat "${index_dir}/version")" -eq 2 ] && return
 
-    [ $(find "${index_dir}" -maxdepth 1 -type d | grep -v "^${index_dir}\$" | wc -l) -eq 0 ] && echo 2 > "${index_dir}/version" || lfs_me_error "Index has wrong version. Version 2 expected!" false
+    [ "$(find "${index_dir}" -maxdepth 1 -type d | grep -v "^${index_dir}\$" | wc -l)" -eq 0 ] && echo 2 > "${index_dir}/version" || lfs_me_error "Index has wrong version. Version 2 expected!" false
 }
 
 lfs_me_indexadd() {
@@ -289,7 +289,7 @@ lfs_me_load_package_files() {
 					;;
 				1)
 					index_entry="$(find "${index_dir}/${pkgname}" -type d | grep -v "^${index_dir}/${pkgname}\$")"
-					pkgver=$(basename "${index_entry}")
+					pkgver="$(basename "${index_entry}")"
 					;;
 				*)
 					lfs_me_error "Package '${pkgname}' is ambiguos" false
@@ -367,15 +367,15 @@ lfs_me_check_dependencies() {
 	for dep in "${dependencies[@]}"
 	do
 		conflict=false
-		package=$(echo "$dep" | awk -F '[><]?=?' '{ print $1 }')
-		version=$(echo "$dep" | awk -F '[><]?=?' '{ print $2 }')
-		comparator=$(echo "$dep" | grep -o -E '[><]?=?')
+		package="$(echo "$dep" | awk -F '[><]?=?' '{ print $1 }')"
+		version="$(echo "$dep" | awk -F '[><]?=?' '{ print $2 }')"
+		comparator="$(echo "$dep" | grep -o -E '[><]?=?')"
 
 		#if dependency start with '!', it's a conflict instead of a dependency
 		[ "${package:0:1}" == '!' ] && package="${package:1}" && conflict=true
 
-		IFS='/' read -a installed <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/")
-		IFS='/' read -a installed_versions <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/" | awk -F '/' '{print $2}')
+		IFS='/' read -a installed <<< "$(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/")"
+		IFS='/' read -a installed_versions <<< "$(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/" | awk -F '/' '{print $2}')"
 
 		if [ -z "${installed[0]}" ]
 		then	#package not installed
@@ -456,8 +456,8 @@ lfs_me_show_time() {
 	start_time="${start_time_s}.${start_time_ns}"
 	stop_time="${stop_time_s}.${stop_time_ns}"
 	diff_time="$( echo $stop_time - $start_time | bc )"
-	diff_time_mins=$( echo $diff_time / 60 | bc)
-	diff_time_s=$( echo $diff_time % 60 | bc)
+	diff_time_mins="$( echo $diff_time / 60 | bc)"
+	diff_time_s="$( echo $diff_time % 60 | bc)"
 	$show_time && echo "time: ${diff_time_mins}m $(echo $diff_time_s | awk '{printf "%.3f", $1}')s"
 }
 
@@ -639,7 +639,7 @@ build_dir="${temp_dir}/build"
 fakeroot_dir="${temp_dir}/fakeroot"
 index_dir="/var/lfs-me/index"
 log_dir="/var/log/lfs-me"
-current_dir=$( pwd )
+current_dir="$( pwd )"
 run_checks=true
 download_sources=true
 verify_checksums=true
@@ -743,12 +743,12 @@ index_dir="${install_prefix}/${index_dir}"
 mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir" "$log_dir" 2> /dev/null
 
 #Get absolute paths for directories ( so cd'ing to them works from everywhere )
-install_prefix=$(readlink -f "$install_prefix")
-build_dir=$(readlink -f "$build_dir")
-fakeroot_dir=$(readlink -f "$fakeroot_dir")
-sources_dir=$(readlink -f "$sources_dir")
-index_dir=$(readlink -f "$index_dir")
-log_dir=$(readlink -f "$log_dir")
+install_prefix="$(readlink -f "$install_prefix")"
+build_dir="$(readlink -f "$build_dir")"
+fakeroot_dir="$(readlink -f "$fakeroot_dir")"
+sources_dir="$(readlink -f "$sources_dir")"
+index_dir="$(readlink -f "$index_dir")"
+log_dir="$(readlink -f "$log_dir")"
 
 #Parse Arguments
 while :
@@ -863,7 +863,7 @@ do
             ;;
 		owner)
 			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
-			filename=$(readlink -f "$2")
+			filename="$(readlink -f "$2")"
 			mode=owner
 			shift 2
 			;;
@@ -1022,7 +1022,7 @@ case "$mode" in
 			lfs_me_index_versioncheck
 			for file in $(cat "${index_dir}/${package}/"{FILES,DIRS,LINKS})
 			do
-				[ $(readlink -f "$file") == "$filename" ] && echo "${package/\//-}"
+				[ "$(readlink -f "$file")" == "$filename" ] && echo "${package/\//-}"
 			done
 		done
 		;;
