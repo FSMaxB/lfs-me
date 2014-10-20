@@ -977,6 +977,12 @@ case "$mode" in
 		lfs_me_preremove 2>&1 | tee "${log_dir}/last-preremove.log"
 		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
 
+		if [ ! -z "$backup" ]
+		then
+			lfs_me_message "Backing up config files"
+			lfs_me_backup
+		fi
+
 		#actually removing the files
 		lfs_me_remove_package
 
