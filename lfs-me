@@ -604,6 +604,7 @@ do
             ;;
         -D | --debug)
             debug=true
+			set -x
             ;;
         -f | --fakeroot-dir)
 			((i++))
