@@ -525,7 +525,7 @@ lfs_me_check_conflicts() {
 	#prevent existing files from getting overwritten by anything at all
 	for file in $(cat "${temp_dir}/ALL_FILES")
 	do
-		if grep -q "^${file}" "${temp_dir}/"{FILES,DIRS,LINKS}
+		if grep -q "^${file}$" "${temp_dir}/"{FILES,DIRS,LINKS}
 		then	#file already belongs to another package
 			lfs_me_error "Conflicting file! '${file}' already belongs to another package!" false
 		fi
