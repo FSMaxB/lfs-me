@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v3.0.1
+------
+* fix regex
+* fix escaping strings
+
 v3.0.0
 ------
 * PKGBUILD format version 4
