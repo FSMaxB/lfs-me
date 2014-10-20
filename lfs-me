@@ -361,6 +361,7 @@ lfs_me_load_pkgbuild() {
 
 #Checks if the necessary dependencies are installed
 lfs_me_check_dependencies() {
+	ignore_current="$1"	#true: ignore conflicts with current package, false: don't ignore
 	lfs_me_get_installed_packages
 	dependencies_met=true
 	for dep in "${dependencies[@]}"
@@ -389,8 +390,13 @@ lfs_me_check_dependencies() {
 		then #dependency is single package name without version requirement
 			if $conflict
 			then
-				dependencies_met=false
 				echo -e "${color_red}!${package}: CONFLICT${color_reset}"
+				dependencies_met=false
+				if $ignore_current && [ "$pkgname" == "$package" ]
+				then
+					dependencies_met=true
+					echo "ignoring conflict"
+				fi
 			else
 				echo -e "${color_green}${package}: FOUND${color_reset}"
 			fi
@@ -429,6 +435,11 @@ lfs_me_check_dependencies() {
 			if $conflict
 			then
 				$dep_met && echo -e "${color_red}${dep}: CONFLICT (${installed_version})${color_reset}" && dependencies_met=false
+				if $ignore_current && [ "$pkgname" == "$package" ]
+				then
+					echo "ignoring conflict"
+					dependencies_met=true
+				fi
 				! $dep_met && echo -e "${color_green}${dep}: NOT INSTALLED${color_reset}"
 			else
 				$dep_met && echo -e "${color_green}${dep}: FOUND (${installed_version})${color_reset}"
@@ -774,7 +785,7 @@ do
 				lfs_me_load_package_files "$@"
 				shift "$shift_value"
 			fi
-			lfs_me_check_dependencies
+			lfs_me_check_dependencies false
 			lfs_me_cleanup
 			lfs_me_show_time
 			exit 0
@@ -872,7 +883,7 @@ case "$mode" in
 		lfs_me_load_pkgbuild
 
 		lfs_me_message "Checking dependencies"
-		lfs_me_check_dependencies
+		lfs_me_check_dependencies true
         
         lfs_me_message "Getting sources"
         lfs_me_sources
@@ -931,7 +942,7 @@ case "$mode" in
 
 	install)
 		lfs_me_message "Checking dependencies"
-		lfs_me_check_dependencies
+		lfs_me_check_dependencies false
 
 		lfs_me_message "Checking for conflicting files"
 		lfs_me_check_conflicts
