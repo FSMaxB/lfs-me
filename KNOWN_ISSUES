@@ -1,0 +1,1 @@
+* Checking for conflicting files doesn't behave correctly for '[' which is an executable installed by coreutils
