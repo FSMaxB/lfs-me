@@ -356,7 +356,7 @@ lfs_me_get_installed_files() {
 
 lfs_me_load_pkgbuild() {
 	source "${temp_dir}/PKGBUILD"
-	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 3 ] || lfs_me_error "PKGBUILD has wrong version. Version 3 expected." false
+	[ ! -z "$pkgbuild_version" ] && [ "$pkgbuild_version" -eq 4 ] || lfs_me_error "PKGBUILD has wrong version. Version 4 expected." false
 }
 
 #Checks if the necessary dependencies are installed
