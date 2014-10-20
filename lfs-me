@@ -16,6 +16,13 @@
 #You should have received a copy of the GNU General Public License
 #along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+#catch SIGINT (ctrl-c) to do cleanup
+trap lfs_me_ctrl_c INT
+
+lfs_me_ctrl_c() {
+	lfs_me_error "Ctrl-C pressed." false
+}
+
 start_time_s=$(date +%s)
 start_time_ns=$(date +%N)
 
