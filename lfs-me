@@ -148,8 +148,7 @@ lfs_me_sources() {
         #Verify all the checksums
         if [[ ! -z ${sha1sums+x} ]]
         then
-            sources_size=${#sources[@]}
-            if [ $sources_size != ${#sha1sums[@]} ]
+            if [ ${#sources_size[@]} != ${#sha1sums[@]} ]
             then
                 lfs_me_error "The number of source files and SHA1 sums differ." false
             fi
@@ -160,7 +159,7 @@ lfs_me_sources() {
 				#get filename
 				if echo "${sources[$i]}" | grep -qE "::(https?|ftp)://"
 				then
-					filename="$(echo "${source[$i]}" | awk -F '::' '{print $1}')"
+					filename="$(echo "${sources[$i]}" | awk -F '::' '{print $1}')"
 					url="$(echo "${sources[$i]}" | sed 's/^.*:://')"
 				else
 					filename="$(basename "${sources[$i]}")"
@@ -182,10 +181,20 @@ lfs_me_sources() {
 
 #Creates SHA1 checksums for each file in 'sources'
 lfs_me_checksums() {
+
     echo "sha1sums=("
-    for file in ${sources[@]}
+    for url in ${sources[@]}
     do
-		sha1sum "${sources_dir}/$(basename $file)" | grep -o -E '^[0-9a-f]{40}'
+		#get filename
+		if echo "$url" | grep -qE "::(https?|ftp)://"
+		then
+			filename="$(echo "$url" | awk -F '::' '{print $1}')"
+			url="$(echo "$url" | sed 's/^.*:://')"
+		else
+			filename="$(basename "$url")"
+		fi
+
+		sha1sum "${sources_dir}/${filename}" | grep -o -E '^[0-9a-f]{40}'
     done
     echo ")"
 }
