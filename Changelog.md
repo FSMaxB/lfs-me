@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v3.0.2
+------
+* fix creation of checksums when downloading to other filenames than in the URL
+
 v3.0.1
 ------
 * fix regex
