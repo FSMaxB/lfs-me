@@ -148,7 +148,7 @@ lfs_me_sources() {
         #Verify all the checksums
         if [[ ! -z ${sha1sums+x} ]]
         then
-            if [ ${#sources_size[@]} != ${#sha1sums[@]} ]
+            if [ ${#sources[@]} != ${#sha1sums[@]} ]
             then
                 lfs_me_error "The number of source files and SHA1 sums differ." false
             fi
