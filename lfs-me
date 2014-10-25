@@ -748,7 +748,6 @@ then
 fi
 
 #Create all the necessary directories
-index_dir="${install_prefix}/${index_dir}"
 mkdir -p "$install_prefix" "$build_dir" "$fakeroot_dir" "$sources_dir" "$index_dir" "$log_dir" 2> /dev/null
 
 #Get absolute paths for directories ( so cd'ing to them works from everywhere )
