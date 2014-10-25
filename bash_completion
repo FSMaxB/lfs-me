@@ -1,0 +1,23 @@
+_lfs-me() {
+	local current #current word
+	current="${COMP_WORDS[COMP_CWORD]}"
+	local previous	#previous word
+	previous="${COMP_WORDS[COMP_CWORD-1]}"
+	local options	#commandline options
+	options="--build-dir --debug --fakeroot-dir --help --index-dir --log-dir --no-checks --no-color --no-downloads --ignore-checksums --prefix --sources --show-time --no-time --no-cert-check -b -D -f -h -i -l -p -s -t"
+	local commands
+	commands="backuplist backupmerge build checkdeps rebuild install remove indexadd indexremove indexlist list check checksums download owner"
+
+	COMPREPLY=()
+
+	if [[ "${current}" == -* ]]
+	then
+		COMPREPLY=( $(compgen -W "$options" -- "${current}") )
+		return
+	else
+		COMPREPLY=( $(compgen -f -W "$commands" -- "${current}" ))
+	fi
+}
+complete -F _lfs-me lfs-me
+
+# vim:set syntax=sh et:
