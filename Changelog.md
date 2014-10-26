@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v3.1.0
+------
+* PKGBUILD format version 5
+* "overwrites" with files that a package overwrites
+* bashcompletion file
+
 v3.0.2
 ------
 * fix creation of checksums when downloading to other filenames than in the URL
