@@ -536,7 +536,13 @@ lfs_me_check_conflicts() {
 	do
 		if grep -q "^${file}$" "${temp_dir}/"{FILES,DIRS,LINKS}
 		then	#file already belongs to another package
-			lfs_me_error "Conflicting file! '${file}' already belongs to another package!" false
+			in_overwrite=false
+			for element in "${overwrite[@]}"
+			do
+				[ "$element" == "$file" ] && in_overwrite=true
+			done
+			$in_overwrite || lfs_me_error "Conflicting file! '${file}' already belongs to another package!" false
+			$in_overwrite && echo "Overwriting '$file'"
 		fi
 	done
 
@@ -545,7 +551,13 @@ lfs_me_check_conflicts() {
 	do
 		if [ -f "${install_prefix}/${file}" ]
 		then
-			lfs_me_error "Conflicting file! '${install_prefix}/${file}' already exists in the filesystem!" false
+			in_overwrite=false
+			for element in "${overwrite[@]}"
+			do
+				[ "$(readlink -f "${install_prefix}/${element}")" == "$(readlink -f "${install_prefix}/${file}")" ] && in_overwrite=true
+			done
+			$in_overwrite || lfs_me_error "Conflicting file! '${install_prefix}/${file}' already exists in the filesystem!" false
+			$in_overwrite && echo "Overwriting '${install_prefix}/${file}'!"
 		fi
 
 	done

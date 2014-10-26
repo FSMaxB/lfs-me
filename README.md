@@ -50,6 +50,7 @@ Create a new package by copying and modifying `PKGBUILD.proto`. The *PKGBUILD* i
 * `pkgver`: The version string for the package.
 * `dependencies`: An array containing a list of all dependencies of the package. See more on the *Dependencies* section.
 * `backup`: An array containing the names of files that are to be backed up by the lfs-me before installing/upgrading the package. This is useful for config files.
+* `overwrite`: An array containing the names of files that get overwritten by this package. This makes the conflict check omit those files.
 * `sources`: An array containing the download URLs of the source files.
 * `sha1sums`: An array containing the SHA1 checksums of the sources files in order to check the integrity.
 
