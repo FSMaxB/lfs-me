@@ -1043,3 +1043,4 @@ if $debug; then echo "You can find logfiles in '${log_dir}'!"; fi
 
 lfs_me_cleanup
 lfs_me_show_time
+exit 0
