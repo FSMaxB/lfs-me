@@ -1,9 +1,12 @@
-pkgbuild_version=4
+pkgbuild_version=5
 pkgname=packagename
 pkgver=1.1.1
 
 backup=(
     '/etc/config.file'
+)
+overwrite=(
+    '/usr/lib/bla.so'
 )
 dependencies=(
     "!$pkgname"
