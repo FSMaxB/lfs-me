@@ -107,10 +107,10 @@ lfs_me_help() {
 }
 
 lfs_me_sources() {
-    if $download_sources
+    if [[ "$download_sources" == "true" ]]
     then
         #Download missing files
-        if [ ! -z ${sources+x} ]
+        if [[ ! -z "${sources+x}" ]]
         then
             for url in ${sources[@]}
             do
@@ -124,9 +124,9 @@ lfs_me_sources() {
 				fi
 
                 # Does the file exist?
-                if [ ! -f "${sources_dir}/${filename}" ]
+                if [[ ! -f "${sources_dir}/${filename}" ]]
                 then
-                    if echo $url | grep -qE '(https?|ftp)://.*'    #URL?
+                    if echo "$url" | grep -qE '(https?|ftp)://.*'    #URL?
                     then
                         if ! sh -c "wget '${url}' -O '${sources_dir}/${filename}' ${wget_flags}"
                         then
@@ -143,12 +143,12 @@ lfs_me_sources() {
         fi
     fi
 
-    if $verify_checksums
+    if [[ "$verify_checksums" == "true" ]]
     then
         #Verify all the checksums
-        if [[ ! -z ${sha1sums+x} ]]
+        if [[ ! -z "${sha1sums+x}" ]]
         then
-            if [ ${#sources[@]} != ${#sha1sums[@]} ]
+            if [[ "${#sources[@]}" != "${#sha1sums[@]}" ]]
             then
                 lfs_me_error "The number of source files and SHA1 sums differ." false
             fi
@@ -166,7 +166,7 @@ lfs_me_sources() {
 				fi
 
                 sum="$(sha1sum "${sources_dir}/${filename}" | grep -o -E '^[0-9a-f]{40}')"
-                if [[ $sum == "${sha1sums[$i]}" ]]
+                if [[ "$sum" == "${sha1sums[$i]}" ]]
                 then
                     echo "${filename} OK"
                 else
@@ -206,7 +206,7 @@ lfs_me_pause() {
 #Print an error message and exit. If $2 is true it also displays the help output
 lfs_me_error() {
     echo -e "${color_bred}ERROR: ${1}${color_reset}" >&2
-	[ -z $2 ] || $2 && lfs_me_help
+	[ -z "$2" ] || "$2" && lfs_me_help
     lfs_me_cleanup
 	lfs_me_show_time
     exit 1
@@ -218,7 +218,7 @@ lfs_me_message() {
 
 lfs_me_cleanup() {
     #clean up tempfiles
-	if $debug; then lfs_me_pause; fi
+	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
     rm -rf "$temp_dir"
 }
 
@@ -252,7 +252,7 @@ lfs_me_index_versioncheck() {
 lfs_me_indexadd() {
     lfs_me_message "Adding to package index"
 	lfs_me_index_versioncheck
-	if $debug; then lfs_me_pause; fi
+	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
     index_entry="${index_dir}/${pkgname}/${pkgver}"
     mkdir -p "$index_entry"
     cp "$temp_dir"/{PKGBUILD,sha1sums,FILES,DIRS,LINKS} "$index_entry"
@@ -261,7 +261,7 @@ lfs_me_indexadd() {
 lfs_me_indexremove() {
     lfs_me_message "Removing from package index"
 	lfs_me_index_versioncheck
-	if $debug; then lfs_me_pause; fi
+	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
     #get name of directory
     index_entry="${index_dir}/${pkgname}/${pkgver}"
 
@@ -275,7 +275,7 @@ lfs_me_indexremove() {
 #for some reason shift suddenly stopped working if not done like that
 lfs_me_load_package_files() {
 	command_name="$1"
-    if [[ -z $2 ]]
+    if [[ -z "$2" ]]
     then
         lfs_me_error "Please specify a package for '${command_name}'" true
     fi
@@ -290,7 +290,7 @@ lfs_me_load_package_files() {
         pkgname="$2"
         pkgver="$3"
 
-		if [ -z $pkgver ] || [ "${pkgver:0:1}" == "-" ]
+		if [[ ( -z "$pkgver" ) || ( "${pkgver:0:1}" == "-" ) ]]
 		then
 			case "$(find "${index_dir}/${pkgname}" -type d | grep -v "^${index_dir}/${pkgname}\$" | wc -l)" in
 				0)
@@ -310,7 +310,7 @@ lfs_me_load_package_files() {
 			shift_value=2
 		fi
 
-        if ! [ -d "$index_entry" ]
+        if  [[ ! -d "$index_entry" ]]
         then
             lfs_me_error "Could not load package files!" false
         fi
@@ -352,7 +352,7 @@ lfs_me_get_installed_files() {
 	lfs_me_get_installed_packages
 	for package in $( cat "${temp_dir}/ALL_PACKAGES" )
 	do
-		if $list_current_package || [ "${pkgname}/${pkgver}" != "$package" ]
+		if [[ ($list_current_package == "true") || ("${pkgname}/${pkgver}" != "$package") ]]
 		then
 			cat "${index_dir}/${package}/FILES" >> "${temp_dir}/ALL_FILES"
 			cat "${index_dir}/${package}/DIRS" >> "${temp_dir}/ALL_DIRS"
@@ -386,22 +386,22 @@ lfs_me_check_dependencies() {
 		IFS='/' read -a installed <<< "$(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/")"
 		IFS='/' read -a installed_versions <<< "$(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/" | awk -F '/' '{print $2}')"
 
-		if [ -z "${installed[0]}" ]
+		if [[ -z "${installed[0]}" ]]
 		then	#package not installed
-			if $conflict
+			if [[ "$conflict" == "true" ]]
 			then
 				echo -e "${color_green}!${package}: NOT INSTALLED${color_reset}"
 			else
 				dependencies_met=false
 				echo -e "${color_red}${package}: MISSING${color_reset}"
 			fi
-		elif [ -z "$version" ]
+		elif [[ -z "$version" ]]
 		then #dependency is single package name without version requirement
-			if $conflict
+			if [[ "$conflict" == "true" ]]
 			then
 				echo -e "${color_red}!${package}: CONFLICT${color_reset}"
 				dependencies_met=false
-				if $ignore_current && [ "$pkgname" == "$package" ]
+				if [[ ($ignore_current == "true") && ("$pkgname" == "$package") ]]
 				then
 					dependencies_met=true
 					echo "ignoring conflict"
@@ -441,10 +441,10 @@ lfs_me_check_dependencies() {
 				esac
 				$dep_met && break
 			done
-			if $conflict
+			if [[ "$conflict" == "true" ]]
 			then
 				$dep_met && echo -e "${color_red}${dep}: CONFLICT (${installed_version})${color_reset}" && dependencies_met=false
-				if $ignore_current && [ "$pkgname" == "$package" ]
+				if [[ ($ignore_current == "true" && ("$pkgname" == "$package") ]]
 				then
 					echo "ignoring conflict"
 					dependencies_met=true
@@ -464,9 +464,9 @@ lfs_me_show_time() {
 	stop_time_ns=$(date +%N)
 	start_time="${start_time_s}.${start_time_ns}"
 	stop_time="${stop_time_s}.${stop_time_ns}"
-	diff_time="$( echo $stop_time - $start_time | bc )"
-	diff_time_mins="$( echo $diff_time / 60 | bc)"
-	diff_time_s="$( echo $diff_time % 60 | bc)"
+	diff_time="$( echo "$stop_time" - "$start_time" | bc )"
+	diff_time_mins="$( echo "$diff_time" / 60 | bc)"
+	diff_time_s="$( echo "$diff_time" % 60 | bc)"
 	$show_time && echo "time: ${diff_time_mins}m $(echo $diff_time_s | awk '{printf "%.3f", $1}')s"
 }
 
@@ -476,13 +476,13 @@ lfs_me_install_package() {
 
 	#extract files
 	lfs_me_message "Extracting package"
-	if $debug; then lfs_me_pause; fi
+	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 	mkdir -pv "${fakeroot_dir}/${install_prefix}"
 	tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./sha1sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
 
 	#install files with rsync
 	lfs_me_message "Installing files"
-	if $debug; then lfs_me_pause; fi
+	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 	rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${log_dir}/last-install.log"
 
 }
@@ -490,12 +490,12 @@ lfs_me_install_package() {
 #removes a package (doesn't remove it from the index and doesn't run lfs_me_preremove and lfs_me_postremove )
 lfs_me_remove_package() {
 	lfs_me_message "Getting list of installed files"
-	if $debug; then lfs_me_pause; fi
+	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 	lfs_me_get_installed_files false    #false: don't include files from the current package
 
 	#deleting files
 	lfs_me_message "Deleting"
-	if $debug; then lfs_me_pause; fi
+	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 	cd "$temp_dir"
 	for file in $( cat "${temp_dir}/FILES" )
 	do
@@ -549,7 +549,7 @@ lfs_me_check_conflicts() {
 	#prevent everything in the package from overwriting any existing file
 	for file in $(cat "${temp_dir}/"{FILES,DIRS,LINKS})
 	do
-		if [ -f "${install_prefix}/${file}" ]
+		if [[ -f "${install_prefix}/${file}" ]]
 		then
 			in_overwrite=false
 			for element in "${overwrite[@]}"
@@ -578,9 +578,9 @@ lfs_me_backuplist() {
 	do_merge="$1"	#true: merge, false: don't merge
 	for file in $(find "$install_prefix/" -type f -name '*.lfs-me-backup' 2> /dev/null)
 	do
-		if $do_merge
+		if [[ "$do_merge" == "true" ]]
 		then
-			if [ -f "${file/.lfs-me-backup/}" ]
+			if [[ -f "${file/.lfs-me-backup/}" ]]
 			then	#does the original still exist
 				echo "Backup file for '${file/.lfs-me-backup/}'"
 				echo "> (m)erge, (s)kip, (r)emove backup, (o)verwrite new"
@@ -676,7 +676,7 @@ merge_tool="vimdiff"
 #load configuration file
 [ -f ~/.lfs-me ] && source ~/.lfs-me
 
-if ! $show_color
+if [[ "$show_color" != "true" ]]
 then
     lfs_me_disable_color
 fi
@@ -751,7 +751,7 @@ done
 unset i
 
 #show help
-if $show_help
+if [[ "$show_help" == "true" ]]
 then
 	lfs_me_help
 	lfs_me_cleanup
@@ -838,7 +838,7 @@ do
         indexlist)
 			[ "$mode" != "undefined" ] && lfs_me_error "Only one action can be performed!" true
             indexlist_search=""
-            case $2 in
+            case "$2" in
                 -*)
                     ;;
                 *)
@@ -909,19 +909,19 @@ case "$mode" in
         lfs_me_sources
 
 	    lfs_me_message "Preparing source"
-		if $debug; then lfs_me_pause; fi
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 		lfs_me_prepare 2>&1 | tee "${log_dir}/last-prepare.log"
-		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
         
 	    lfs_me_message "Building"
-		if $debug; then lfs_me_pause; fi
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 		lfs_me_build 2>&1 | tee "${log_dir}/last-build.log"
-		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
        
-        if $run_checks
+        if [[ "$run_checks" == "true" ]]
         then
             lfs_me_message "Running checks"
-			if $debug; then lfs_me_pause; fi
+			if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
             lfs_me_check 2>&1 | tee "${log_dir}/last-check.log"
         fi
         
@@ -968,11 +968,11 @@ case "$mode" in
 		lfs_me_check_conflicts
 
 		lfs_me_message "Running preinstall"
-		if $debug; then lfs_me_pause; fi
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 		lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
-		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
 
-		if [ ! -z "$backup" ]
+		if [[ ! -z "$backup" ]]
 		then
 			lfs_me_message "Backing up config files"
 			lfs_me_backup
@@ -984,7 +984,7 @@ case "$mode" in
 		#postinstall script
 		lfs_me_message "Running postinstall"
 		cd "$temp_dir"
-		if $debug; then lfs_me_pause; fi
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 		lfs_me_postinstall 2>&1 | tee "${log_dir}/last-postinstall.log"
 
         #add to index
@@ -993,11 +993,11 @@ case "$mode" in
 
 	remove)
 		lfs_me_message "Running preremove"
-		if $debug; then lfs_me_pause; fi
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 		lfs_me_preremove 2>&1 | tee "${log_dir}/last-preremove.log"
-		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
 
-		if [ ! -z "$backup" ]
+		if [[ ! -z "$backup" ]]
 		then
 			lfs_me_message "Backing up config files"
 			lfs_me_backup
@@ -1008,7 +1008,7 @@ case "$mode" in
 
         #postremove script
         lfs_me_message "Running postremove"
-		if $debug; then lfs_me_pause; fi
+		if[[ "$debug" == "true" ]]; then lfs_me_pause; fi
 		lfs_me_postremove 2>&1 | tee "${log_dir}/last-postremove.log"
 
         #remove from index
@@ -1016,7 +1016,7 @@ case "$mode" in
         ;;
 	check)
         lfs_me_message "Preparing sha1sums"
-		if $debug; then lfs_me_pause; fi
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 
 	    cd "$temp_dir"
 	    grep -ve "[a-z0-9]\{40\}\\s*\\.\\/\(FILES$\|LINKS$\|DIRS$\)" sha1sums > sha1sums.grep
@@ -1025,7 +1025,7 @@ case "$mode" in
         #verify checksums
         lfs_me_message "Verifying checksums"
         cd "${install_prefix}/"
-		if $debug; then lfs_me_pause; fi
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 		sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${log_dir}/last-checksums.log"
         ;;
 	checksums)
@@ -1051,7 +1051,7 @@ case "$mode" in
         ;;
 esac
 
-if $debug; then echo "You can find logfiles in '${log_dir}'!"; fi
+if [[ "$debug" == "true" ]]; then echo "You can find logfiles in '${log_dir}'!"; fi
 
 lfs_me_cleanup
 lfs_me_show_time
