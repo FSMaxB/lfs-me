@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v3.1.1
+------
+* new flag --no-logs ( to fix an issue with the linux package)
+* performance improvements ( less forks )
+
 v3.1.0
 ------
 * PKGBUILD format version 5
