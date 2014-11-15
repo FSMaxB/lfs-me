@@ -445,7 +445,7 @@ lfs_me_check_dependencies() {
 			if [[ "$conflict" == "true" ]]
 			then
 				$dep_met && echo -e "${color_red}${dep}: CONFLICT (${installed_version})${color_reset}" && dependencies_met=false
-				if [[ ($ignore_current == "true" && ("$pkgname" == "$package") ]]
+				if [[ ($ignore_current == "true") && ("$pkgname" == "$package") ]]
 				then
 					echo "ignoring conflict"
 					dependencies_met=true
