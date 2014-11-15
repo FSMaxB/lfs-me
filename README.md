@@ -139,6 +139,7 @@ Command line usage
 |`-t`     |`--show-time`       |Show execution time at the end.                      |
 |         |`--no-time`         |Don't show execution time at the end.                |
 |         |`--no-cert-check`   |Don't check SSL certificates.                        |
+|         |`--no-logs`         |Don't log output. (needed for menus during build)    |
 
 Configuration file
 ------------------
@@ -149,6 +150,7 @@ You can create the configuration file `~/.lfs-me` to set default values for vari
 * `sources_dir`
 * `index_dir`
 * `log_dir`
+* `do_logs`: *true* or *false*
 * `run_checks`: *true* or *false*
 * `download_sources`: *true* or *false*
 * `verify_checksums`: *true* or *false*

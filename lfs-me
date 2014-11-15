@@ -103,6 +103,7 @@ lfs_me_help() {
 	echo -e "${color_bblue} -t | --show-time         ${color_blue}Show execution time at the end."
 	echo -e "${color_bblue}    | --no-time           ${color_blue}Don't show execution time at the end."
 	echo -e "${color_bblue}    | --no-cert-check     ${color_blue}Don't check SSL certificates."
+	echo -e "${color_bblue}    | --no-logs           ${color_blue}Don't log output. (needed for menus during build)"
     echo -e "${color_reset}"
 }
 
@@ -483,7 +484,12 @@ lfs_me_install_package() {
 	#install files with rsync
 	lfs_me_message "Installing files"
 	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-	rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${log_dir}/last-install.log"
+	if [[ "$do_logs" == "true" ]]
+	then
+		rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${log_dir}/last-install.log"
+	else
+		rsync -rlpgoDK "${fakeroot_dir}/" /
+	fi
 
 }
 
@@ -672,6 +678,7 @@ show_help=false
 show_time=false
 wget_flags=""
 merge_tool="vimdiff"
+do_logs=true
 
 #load configuration file
 [ -f ~/.lfs-me ] && source ~/.lfs-me
@@ -742,6 +749,9 @@ do
 			;;
 		--no-cert-check)
 			wget_flags="--no-check-certificate"
+			;;
+		--no-logs)
+			do_logs=false
 			;;
         -*)
             lfs_me_error "Unknown option '${!i}'" true
@@ -910,25 +920,48 @@ case "$mode" in
 
 	    lfs_me_message "Preparing source"
 		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-		lfs_me_prepare 2>&1 | tee "${log_dir}/last-prepare.log"
-		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
+		if [[ "$do_logs" == "true" ]]
+		then
+			lfs_me_prepare 2>&1 | tee "${log_dir}/last-prepare.log"
+			[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		else
+			true
+			lfs_me_prepare || lfs_me_error "Non zero exit status." false
+		fi
         
 	    lfs_me_message "Building"
 		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-		lfs_me_build 2>&1 | tee "${log_dir}/last-build.log"
-		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
+		if [[ "$do_logs" == "true" ]]
+		then
+			lfs_me_build 2>&1 | tee "${log_dir}/last-build.log"
+			[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		else
+			true
+			lfs_me_build || lfs_me_error "Non zero exit status." false
+		fi
        
         if [[ "$run_checks" == "true" ]]
         then
             lfs_me_message "Running checks"
 			if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-            lfs_me_check 2>&1 | tee "${log_dir}/last-check.log"
+			if [[ "$do_logs" == "true" ]]
+			then
+				lfs_me_check 2>&1 | tee "${log_dir}/last-check.log"
+			else
+				lfs_me_check
+			fi
         fi
         
 	    lfs_me_message "Installing to fakeroot"
 		if $debug; then lfs_me_pause; fi
-		lfs_me_install 2>&1 | tee "${log_dir}/last-install.log"
-		[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		if [[ "$do_logs" == "true" ]]
+		then
+			lfs_me_install 2>&1 | tee "${log_dir}/last-install.log"
+			[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		else
+			true
+			lfs_me_install || lfs_me_error "Non zero exit status." false
+		fi
         
 	    lfs_me_message "Packaging"
 		if $debug; then lfs_me_pause; fi
@@ -969,8 +1002,14 @@ case "$mode" in
 
 		lfs_me_message "Running preinstall"
 		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-		lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
-		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
+		if [[ "$do_logs" == "true" ]]
+		then
+			lfs_me_preinstall 2>&1 | tee "${log_dir}/last-preinstall.log"
+			[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		else
+			true
+			lfs_me_preinstall || lfs_me_error "Non zero exit status." false
+		fi
 
 		if [[ ! -z "$backup" ]]
 		then
@@ -985,7 +1024,12 @@ case "$mode" in
 		lfs_me_message "Running postinstall"
 		cd "$temp_dir"
 		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-		lfs_me_postinstall 2>&1 | tee "${log_dir}/last-postinstall.log"
+		if [[ "$do_logs" == "true" ]]
+		then
+			lfs_me_postinstall 2>&1 | tee "${log_dir}/last-postinstall.log"
+		else
+			lfs_me_postinstall
+		fi
 
         #add to index
         lfs_me_indexadd
@@ -994,8 +1038,13 @@ case "$mode" in
 	remove)
 		lfs_me_message "Running preremove"
 		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-		lfs_me_preremove 2>&1 | tee "${log_dir}/last-preremove.log"
-		[ ! "${PIPESTATUS[0]}" -eq 0 ] && lfs_me_error "Non zero exit status." false
+		if [[ "$do_logs" == "true" ]]
+		then
+			lfs_me_preremove 2>&1 | tee "${log_dir}/last-preremove.log"
+			[ ! ${PIPESTATUS[0]} -eq 0 ] && lfs_me_error "Non zero exit status." false
+		else
+			lfs_me_preremove || lfs_me_error "Non zero exit status." false
+		fi
 
 		if [[ ! -z "$backup" ]]
 		then
@@ -1008,8 +1057,13 @@ case "$mode" in
 
         #postremove script
         lfs_me_message "Running postremove"
-		if[[ "$debug" == "true" ]]; then lfs_me_pause; fi
-		lfs_me_postremove 2>&1 | tee "${log_dir}/last-postremove.log"
+		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
+		if [[ "$do_logs" == "true" ]]
+		then
+			lfs_me_postremove 2>&1 | tee "${log_dir}/last-postremove.log"
+		else
+			lfs_me_postremove
+		fi
 
         #remove from index
         lfs_me_indexremove
@@ -1026,7 +1080,12 @@ case "$mode" in
         lfs_me_message "Verifying checksums"
         cd "${install_prefix}/"
 		if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-		sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${log_dir}/last-checksums.log"
+		if [[ "$do_logs" == "true" ]]
+		then
+			sha1sum -c "$temp_dir/sha1sums" 2>&1 | tee "${log_dir}/last-checksums.log"
+		else
+			sha1sum -c "$temp_dir/sha1sums"
+		fi
         ;;
 	checksums)
         cp "$pkgbuild_file" "${temp_dir}/PKGBUILD"
