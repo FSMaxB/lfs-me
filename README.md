@@ -180,3 +180,8 @@ Here is a typical scenario on how to create, build and install a package with *l
 5. Build the package: `lfs-me build foo-0.1.1 -s ~/downloads`
 6. Install the package into `/mnt/lfs` for example ( you can omit the prefix to install to `/`): `sudo lfs-me install foo-0.1.1.pkg -p /mnt/lfs`
 7. Check the installed files: `lfs-me check foo 0.1.1 -p /mnt/lfs`
+
+lfs-me in action
+----------------
+To see *lfs-me* in action take a look at my collection of packages at https://github.com/FSMaxB/lfs-me-repos .
+
