@@ -104,6 +104,7 @@ lfs_me_help() {
 	echo -e "${color_bblue}    | --no-time           ${color_blue}Don't show execution time at the end."
 	echo -e "${color_bblue}    | --no-cert-check     ${color_blue}Don't check SSL certificates."
 	echo -e "${color_bblue}    | --no-logs           ${color_blue}Don't log output. (needed for menus during build)"
+	echo -e "${color_bblue}    | --version           ${color_blue}Show version number."
     echo -e "${color_reset}"
 }
 
@@ -752,6 +753,11 @@ do
 			;;
 		--no-logs)
 			do_logs=false
+			;;
+		--version)
+			echo 3.1.1
+			lfs_me_cleanup
+			exit 0
 			;;
         -*)
             lfs_me_error "Unknown option '${!i}'" true

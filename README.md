@@ -140,6 +140,7 @@ Command line usage
 |         |`--no-time`         |Don't show execution time at the end.                |
 |         |`--no-cert-check`   |Don't check SSL certificates.                        |
 |         |`--no-logs`         |Don't log output. (needed for menus during build)    |
+|         |`--version`         |Show version number.                                 |
 
 Configuration file
 ------------------
