@@ -19,6 +19,9 @@
 #catch SIGINT (ctrl-c) to do cleanup
 trap lfs_me_ctrl_c INT
 
+#force english output
+export LC_ALL=C
+
 lfs_me_ctrl_c() {
 	lfs_me_error "Ctrl-C pressed." false
 }
