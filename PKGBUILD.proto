@@ -3,13 +3,13 @@ pkgname=packagename
 pkgver=1.1.1
 
 backup=(
-    '/etc/config.file'
+	'/etc/config.file'
 )
 overwrite=(
-    '/usr/lib/bla.so'
+	'/usr/lib/bla.so'
 )
 dependencies=(
-    "!$pkgname"
+	"!$pkgname"
 	'package'
 	'otherpackage>2'
 )
@@ -61,4 +61,4 @@ lfs_me_postremove() {
 	return
 }
 
-# vim:set syntax=sh et:
+# vim:set syntax=sh:
