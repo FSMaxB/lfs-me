@@ -536,23 +536,6 @@ lfs_me_remove_package() {
 
 #check for conflicting files
 lfs_me_check_conflicts() {
-	lfs_me_get_installed_files
-
-	#prevent existing files from getting overwritten by anything at all
-	for file in $(cat "${temp_dir}/ALL_FILES")
-	do
-		if grep -q "^${file}$" "${temp_dir}/"{FILES,DIRS,LINKS}
-		then	#file already belongs to another package
-			in_overwrite=false
-			for element in "${overwrite[@]}"
-			do
-				[ "$element" == "$file" ] && in_overwrite=true
-			done
-			$in_overwrite || lfs_me_error "Conflicting file! '${file}' already belongs to another package!" false
-			$in_overwrite && echo "Overwriting '$file'"
-		fi
-	done
-
 	#prevent everything in the package from overwriting any existing file
 	for file in $(cat "${temp_dir}/"{FILES,DIRS,LINKS})
 	do
@@ -561,10 +544,14 @@ lfs_me_check_conflicts() {
 			in_overwrite=false
 			for element in "${overwrite[@]}"
 			do
-				[ "$(readlink -f "${install_prefix}/${element}")" == "$(readlink -f "${install_prefix}/${file}")" ] && in_overwrite=true
+				if [[ "$(readlink -f "${install_prefix}/${element}")" == "$(readlink -f "${install_prefix}/${file}")" ]]; then
+					in_overwrite=true
+				fi
 			done
-			$in_overwrite || lfs_me_error "Conflicting file! '${install_prefix}/${file}' already exists in the filesystem!" false
-			$in_overwrite && echo "Overwriting '${install_prefix}/${file}'!"
+			if [[ "$in_overwrite" == "false" ]]; then
+				lfs_me_error "Conflicting file! '${install_prefix}/${file}' already exists in the filesystem!" false
+			fi
+			echo "Overwriting '${install_prefix}/${file}'!"
 		fi
 
 	done
