@@ -61,4 +61,4 @@ lfs_me_postremove() {
 	return
 }
 
-# vim:set syntax=sh:
+# vim:set ts=4 syntax=sh:
