@@ -389,7 +389,7 @@ lfs_me_check_dependencies() {
 		[ "${package:0:1}" == '!' ] && package="${package:1}" && conflict=true
 
 		IFS='/' read -a installed <<< "$(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/")"
-		IFS='/' read -a installed_versions <<< "$(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/" | awk -F '/' '{print $2}')"
+		IFS=' ' read -a installed_versions <<< $(cat "${temp_dir}/ALL_PACKAGES" | grep "^$package/" | awk -F '/' '{print $2}')
 
 		if [[ -z "${installed[0]}" ]]
 		then	#package not installed
