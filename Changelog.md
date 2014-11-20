@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v3.1.2
+------
+* --version flag
+* significant performance improvement
+* LC_ALL=C for the build process
+* fix: bug in dependency handling when multiple versions of a package are installed
+
 v3.1.1
 ------
 * new flag --no-logs ( to fix an issue with the linux package)

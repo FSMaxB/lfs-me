@@ -777,7 +777,7 @@ do
 			do_logs=false
 			;;
 		--version)
-			echo 3.1.1
+			echo 3.1.2
 			lfs_me_cleanup
 			exit 0
 			;;
