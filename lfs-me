@@ -427,37 +427,69 @@ lfs_me_check_dependencies() {
 
 				case "$comparator" in
 					">")
-						$newer && dep_met=true || dep_met=false
+						if [[ "$newer" == "true" ]]; then
+							dep_met=true
+						else
+							dep_met=false
+						fi
 						;;
 					"<")
-						$older && dep_met=true || dep_met=false
+						if [[ "$older" == "true" ]]; then
+							dep_met=true
+						else
+							dep_met=false
+						fi
 						;;
 					"=")
-						! $newer && ! $older && dep_met=true || dep_met=false
+						if [[ ("$newer" == "false") && ("$older" == "false") ]]; then
+							dep_met=true
+						else
+							dep_met=false
+						fi
 						;;
 					">=")
-						! $older && dep_met=true || dep_met=false
+						if [[ "$older" == "false" ]]; then
+							dep_met=true
+						else
+							dep_met=false
+						fi
 						;;
 					"<=")
-						! $newer && dep_met=true || dep_met=false
+						if [[ "$newer" == "false" ]]; then
+							dep_met=true
+						else
+							dep_met=false
+						fi
 						;;
 					*)
 						lfs_me_error "Unknown comparator '$comparator'!" false
 				esac
-				$dep_met && break
+				if [[ "$dep_met" == "true" ]]; then
+					break
+				fi
 			done
 			if [[ "$conflict" == "true" ]]
 			then
-				$dep_met && echo -e "${color_red}${dep}: CONFLICT (${installed_version})${color_reset}" && dependencies_met=false
+				if [[ "$dep_met" == "true" ]]; then
+					echo -e "${color_red}${dep}: CONFLICT (${installed_version})${color_reset}"
+					dependencies_met=false
+				elif [[ "$dep_met" == "false" ]]; then
+					echo -e "${color_green}${dep}: NOT INSTALLED${color_reset}"
+					dependencies_met=true
+				fi
 				if [[ ($ignore_current == "true") && ("$pkgname" == "$package") ]]
 				then
 					echo "ignoring conflict"
 					dependencies_met=true
 				fi
-				! $dep_met && echo -e "${color_green}${dep}: NOT INSTALLED${color_reset}"
 			else
-				$dep_met && echo -e "${color_green}${dep}: FOUND (${installed_version})${color_reset}"
-				! $dep_met && echo -e "${color_red}${dep}: WRONG VERSION(S) (${installed_versions[@]})${color_reset}" && dependencies_met=false
+				if [[ "$dep_met" == "true" ]]; then
+					echo -e "${color_green}${dep}: FOUND (${installed_version})${color_reset}"
+					dependencies_met=true
+				elif [[ "$dep_met" == "false" ]]; then
+					echo -e "${color_red}${dep}: WRONG VERSION(S) (${installed_versions[@]})${color_reset}"
+					dependencies_met=false
+				fi
 			fi
 		fi
 	done
