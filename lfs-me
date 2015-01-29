@@ -245,7 +245,7 @@ lfs_me_package() {
     #create package
     cd "$current_dir"
     cp "${temp_dir}/PKGBUILD" "${fakeroot_dir}/"
-    fakeroot tar -cJf "${pkgname}-${pkgver}.pkg" -C "$fakeroot_dir" .
+    fakeroot tar -cf "${pkgname}-${pkgver}.pkg" -I 'xz --threads=0 -c -z -' -C "$fakeroot_dir" .
 
     #clean build directories
     [ "$build_dir" ] && [ "$fakeroot_dir" ] && rm -rf ${build_dir}/* ${fakeroot_dir}/*
