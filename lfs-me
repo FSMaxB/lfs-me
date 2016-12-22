@@ -529,7 +529,8 @@ lfs_me_install_package() {
 	else
 		rsync -rlpgoDK "${fakeroot_dir}/" /${install_prefix}
 	fi
-
+	
+	[ "$fakeroot_dir" ] && rm -rf ${fakeroot_dir}/*
 }
 
 #removes a package (doesn't remove it from the index and doesn't run lfs_me_preremove and lfs_me_postremove )
