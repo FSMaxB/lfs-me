@@ -29,6 +29,9 @@ lfs_me_ctrl_c() {
 start_time_s=$(date +%s)
 start_time_ns=$(date +%N)
 
+#Cpu Cores for Make jobs
+jobs=$(grep "^processor" /proc/cpuinfo | wc -l)
+
 #color codes
 color_red='\e[0;31m'      #Red
 color_green='\e[0;32m'    #Green
@@ -652,17 +655,17 @@ lfs_me_prepare() {
 
 lfs_me_build() {
 	cd "${build_dir}/${pkgname}-${pkgver}"
-	make
+	make -j ${jobs}
 }
 
 lfs_me_check() {
 	cd "${build_dir}/${pkgname}-${pkgver}"
-	make check
+	make -j ${jobs} check
 }
 
 lfs_me_install() {
 	cd "${build_dir}/${pkgname}-${pkgver}"
-	make DESTDIR="${fakeroot_dir}" install
+	make -j ${jobs} DESTDIR="${fakeroot_dir}" install
 }
 
 lfs_me_preinstall() {
