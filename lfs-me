@@ -29,6 +29,9 @@ lfs_me_ctrl_c() {
 start_time_s=$(date +%s)
 start_time_ns=$(date +%N)
 
+#Cpu Cores for Make jobs
+jobs=$(grep "^processor" /proc/cpuinfo | wc -l)
+
 #color codes
 color_red='\e[0;31m'      #Red
 color_green='\e[0;32m'    #Green
@@ -78,11 +81,11 @@ lfs_me_help() {
     echo -e "${color_bblue} indexremove  ${color_blue}package.pkg              Remove a package from the index"
     echo -e "${color_bblue} indexremove  ${color_blue}pkgname pkgver           Remove a package from the index"
     echo -e "${color_bblue} indexremove  ${color_blue}pkgname                  Remove a package from the index"
-	echo -e "${color_bblue} indexlist    ${color_blue}                         List all package in the index"
-	echo -e "${color_bblue} indexlist    ${color_blue}searchterm               Search for packages in the index"
-	echo -e "${color_bblue} list         ${color_blue}package.pkg              List all files of a package"
-	echo -e "${color_bblue} list         ${color_blue}pkgname                  List all files of a package"
-	echo -e "${color_bblue} list         ${color_blue}pkgname pkgver           List all files of a package"
+    echo -e "${color_bblue} indexlist    ${color_blue}                         List all package in the index"
+    echo -e "${color_bblue} indexlist    ${color_blue}searchterm               Search for packages in the index"
+    echo -e "${color_bblue} list         ${color_blue}package.pkg              List all files of a package"
+    echo -e "${color_bblue} list         ${color_blue}pkgname                  List all files of a package"
+    echo -e "${color_bblue} list         ${color_blue}pkgname pkgver           List all files of a package"
     echo -e "${color_bblue} check        ${color_blue}package.pkg              Verify checksums of files installed by package"
     echo -e "${color_bblue} check        ${color_blue}pkgname pkgver           Verify checksums of files installed by package"
     echo -e "${color_bblue} check        ${color_blue}pkgname                  Verify checksums of files installed by package"
@@ -103,11 +106,11 @@ lfs_me_help() {
     echo -e "${color_bblue}    | --ignore-checksums  ${color_blue}Don't verify checksums"
     echo -e "${color_bblue} -p | --prefix            ${color_blue}Set install prefix"
     echo -e "${color_bblue} -s | --sources           ${color_blue}Set directory with source tarballs"
-	echo -e "${color_bblue} -t | --show-time         ${color_blue}Show execution time at the end."
-	echo -e "${color_bblue}    | --no-time           ${color_blue}Don't show execution time at the end."
-	echo -e "${color_bblue}    | --no-cert-check     ${color_blue}Don't check SSL certificates."
-	echo -e "${color_bblue}    | --no-logs           ${color_blue}Don't log output. (needed for menus during build)"
-	echo -e "${color_bblue}    | --version           ${color_blue}Show version number."
+    echo -e "${color_bblue} -t | --show-time         ${color_blue}Show execution time at the end."
+    echo -e "${color_bblue}    | --no-time           ${color_blue}Don't show execution time at the end."
+    echo -e "${color_bblue}    | --no-cert-check     ${color_blue}Don't check SSL certificates."
+    echo -e "${color_bblue}    | --no-logs           ${color_blue}Don't log output. (needed for menus during build)"
+    echo -e "${color_bblue}    | --version           ${color_blue}Show version number."
     echo -e "${color_reset}"
 }
 
@@ -245,7 +248,7 @@ lfs_me_package() {
     fakeroot tar -cJf "${pkgname}-${pkgver}.pkg" -C "$fakeroot_dir" .
 
     #clean build directories
-    [ "$build_dir" ] && [ "$fakeroot_dir" ] && rm -rf "${build_dir}/*" "${fakeroot_dir}/*"
+    [ "$build_dir" ] && [ "$fakeroot_dir" ] && rm -rf ${build_dir}/* ${fakeroot_dir}/*
 }
 
 lfs_me_index_versioncheck() {
@@ -514,19 +517,20 @@ lfs_me_install_package() {
 	#extract files
 	lfs_me_message "Extracting package"
 	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
-	mkdir -pv "${fakeroot_dir}/${install_prefix}"
-	tar -xJf "$package_file" -C "${fakeroot_dir}/${install_prefix}" --exclude ./PKGBUILD --exclude ./sha1sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
+	mkdir -pv "${fakeroot_dir}/"
+	tar -xJf "$package_file" -C "${fakeroot_dir}/" --exclude ./PKGBUILD --exclude ./sha1sums --exclude ./FILES --exclude ./DIRS --exclude ./LINKS
 
 	#install files with rsync
 	lfs_me_message "Installing files"
 	if [[ "$debug" == "true" ]]; then lfs_me_pause; fi
 	if [[ "$do_logs" == "true" ]]
 	then
-		rsync -rlpgoDK "${fakeroot_dir}/" / 2>&1 | tee "${log_dir}/last-install.log"
+		rsync -rlpgoDK "${fakeroot_dir}/" /${install_prefix} 2>&1 | tee "${log_dir}/last-install.log"
 	else
-		rsync -rlpgoDK "${fakeroot_dir}/" /
+		rsync -rlpgoDK "${fakeroot_dir}/" /${install_prefix}
 	fi
-
+	
+	[ "$fakeroot_dir" ] && rm -rf ${fakeroot_dir}/*
 }
 
 #removes a package (doesn't remove it from the index and doesn't run lfs_me_preremove and lfs_me_postremove )
@@ -652,17 +656,17 @@ lfs_me_prepare() {
 
 lfs_me_build() {
 	cd "${build_dir}/${pkgname}-${pkgver}"
-	make
+	make -j ${jobs}
 }
 
 lfs_me_check() {
 	cd "${build_dir}/${pkgname}-${pkgver}"
-	make check
+	make -j ${jobs} check
 }
 
 lfs_me_install() {
 	cd "${build_dir}/${pkgname}-${pkgver}"
-	make DESTDIR="${fakeroot_dir}" install
+	make -j ${jobs} DESTDIR="${fakeroot_dir}" install
 }
 
 lfs_me_preinstall() {
