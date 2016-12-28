@@ -7,7 +7,7 @@ Description
 -----------
 *lfs-me* is a package manager that is completely written in bash. It was created in order to make installing Linux From Scratch easier and provide the author a learning experience about how package management can be done from scratch.
 
-*lfs-me* doesn't support inter package dependencies, but it can keep track of what packages and files have been installed on the system, for more information about the package index see the **Index** section.
+*lfs-me* can keep track of what packages and files have been installed on the system, for more information about the package index see the **Index** section. Although *lfs-me* supports inter package dependencies, it cannot automatically resolve them, only show you which dependencies are missing.
 
 Packages are created in the form of a PKGBUILD file ( very similar to those used by Archlinux ). PKGBUILD files are bash scripts that get loaded by the package manager and contain variables and functions that describe how the software is to be downloaded, built and installed. You can create a package by copying `PKGBUILD.proto`. The exact process is described in the **PKGBUILD** section.
 
