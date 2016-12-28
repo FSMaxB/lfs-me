@@ -1,6 +1,16 @@
 Changelog
 =========
 
+v3.1.3
+------
+* parallel xz compression
+* Several fixes and improvements, thanks @faithust
+    * fix cleaning of fakeroot dir after installing
+    * use parallel make
+    * fix missing install prefix
+    * fix deleting fakroot_dir and build_dir
+    * fix help message line
+
 v3.1.2
 ------
 * --version flag
