@@ -12,7 +12,7 @@ Description
 Packages are created in the form of a PKGBUILD file ( very similar to those used by Archlinux ). PKGBUILD files are bash scripts that get loaded by the package manager and contain variables and functions that describe how the software is to be downloaded, built and installed. You can create a package by copying `PKGBUILD.proto`. The exact process is described in the **PKGBUILD** section.
 
 **WARNING**
-You should be aware that you should not under any circumstances use *lfs-me* in a production environment ( outside a virtual machine or chroot ) if you don't now what you are doing and how it works. This might break your system horribly if you try to install packages in there.
+You should be aware that you should not under any circumstances use *lfs-me* in a production environment ( outside a virtual machine or chroot ) if you don't know what you are doing and how it works. This might break your system horribly if you try to install packages in there.
 
 Package Format
 --------------
