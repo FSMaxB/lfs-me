@@ -174,7 +174,7 @@ Typical scenario
 Here is a typical scenario on how to create, build and install a package with *lfs-me*.
 
 1. Create the *PKGBUILD* from `PKGBUILD.proto` and save it as `foo-0.1.1`
-2. Download the source files into `~/downloas`: `lfs-me download foo-0.1.1 -s ~/downloads`
+2. Download the source files into `~/downloads`: `lfs-me download foo-0.1.1 -s ~/downloads`
 3. Calculate the checksums for the downloaded sources: `lfs-me checksums foo-0.1.1 -s ~/downloads`
 4. Edit the *PKGBUILD* to include the checksums.
 5. Build the package: `lfs-me build foo-0.1.1 -s ~/downloads`
