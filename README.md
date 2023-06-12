@@ -22,7 +22,7 @@ The packages are simple tarballs with xz compression that contain some extra fil
 * `DIRS`: A list of every installed directory.
 * `FILES`: A list of every installed File.
 * `LINKS`: A list of every installed symbolic link.
-* `PKGBUILD`: The PKGBUILD file from which the pacakge has been built. This is needed to run postinstall and postremove functions.
+* `PKGBUILD`: The PKGBUILD file from which the package has been built. This is needed to run postinstall and postremove functions.
 
 Index
 -----
